@@ -1,0 +1,17 @@
+{
+    "name" : "NoName",
+    "author" : "willkyu",
+    "namespace" : "NoName",
+    "info" : "NoN Game for You.",
+    "priority" : 10000,
+    "svn" : 1,
+    "compatible_svn" : 101,
+    "message_mode" : "olivos_string",
+    "support" : [
+        {
+            "sdk" : "all",
+            "platform" : "all",
+            "model" : "all"
+        }
+    ]
+}
