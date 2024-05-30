@@ -23,7 +23,7 @@ def unity_group_reply(
             config.battleList.append(Battle(groupID, botSend))
             config.battleGroupDict[groupID] = len(config.battleList) - 1
             config.battlePlayerDict[userID] = len(config.battleList) - 1
-            botSend("用户【{}】开启了一场NON对战\n当前状态：1/2")
+            botSend("用户【{}】开启了一场NON对战\n当前状态：1/2".format(userName))
             config.battleList[config.battleGroupDict[groupID]].addPlayer(userID)
         elif len(config.battleList[config.battleGroupDict[groupID]].playerDict) > 1:
             botSend("对战人数已满，请等待结束")
