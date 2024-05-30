@@ -13,6 +13,8 @@ pluginName = "NoN"
 botSend = None
 
 
+
+
 def initmsg(Proc):
     global botHash
     global botSend
