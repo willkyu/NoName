@@ -1,6 +1,6 @@
 from OlivOS.API import Event, Proc_templet
-from utils.config import Config
-from plugin.utils.sim.battleClass import Battle
+from config import Config
+from plugin.sim.battle import Battle
 
 
 def unity_group_reply(

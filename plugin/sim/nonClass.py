@@ -1,5 +1,5 @@
-from utils.sim.side import Side
-from utils.sim.globalTypes import *
+from sim.side import Side
+from sim.globalTypes import *
 
 
 class NON(object):
