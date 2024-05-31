@@ -1,5 +1,5 @@
 import os
-from utils.battleClass import Battle
+from plugin.utils.sim.battleClass import Battle
 
 
 def dir(path: str) -> str:

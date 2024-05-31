@@ -1,4 +1,4 @@
-from utils.nonClass import NONBattleEntity
+from plugin.utils.sim.nonClass import NONBattleEntity
 
 
 class PlayerCommand(object):

@@ -1,4 +1,4 @@
-from utils.battleClass import BattleStage
+from plugin.utils.sim.battleClass import BattleStage
 import pickle
 
 

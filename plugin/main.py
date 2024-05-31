@@ -1,6 +1,6 @@
 import OlivOS
 from utils.config import Config
-from utils.groupCommand import unity_group_reply
+from plugin.utils.sim.groupCommand import unity_group_reply
 
 
 activeGroupList = ["957736515"]

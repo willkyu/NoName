@@ -1,3 +1,7 @@
+from utils.sim.side import Side
+from utils.sim.globalTypes import *
+
+
 class NON(object):
     def __init__(self) -> None:
         pass
@@ -11,3 +15,7 @@ class NONEntity(NON):
 class NONBattleEntity(NONEntity):
     def __init__(self, entity: NONEntity) -> None:
         super().__init__(entity)
+
+
+class EffectState:
+    duration: number | any
