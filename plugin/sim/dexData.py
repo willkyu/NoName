@@ -1,4 +1,21 @@
+import re
+
 from sim.globalTypes import *
+
+
+def toID(text: any) -> str:
+    # The sucrase transformation of optional chaining is too expensive to be used in a hot function like this.
+    # eslint-disable @typescript-eslint/prefer-optional-chain
+    if text and hasattr(text, "id"):
+        text = text.id
+    elif text and hasattr(text, "userid"):
+        text = text.userid
+    elif text and hasattr(text, "roomid"):
+        text = text.roomid
+    if not isinstance(text, (str, int)):
+        return ""
+    # eslint-enable @typescript-eslint/prefer-optional-chain
+    return re.sub(r"[^a-z0-9]+", "", str(text).lower())
 
 
 class BasicEffect(EffectData):

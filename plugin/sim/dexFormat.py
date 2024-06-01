@@ -51,7 +51,7 @@ class Format(BasicEffect):
     mutuallyExclusiveWith: str | None
 
     battle: ModdedBattleScriptsData | None
-    pokemon: ModdedBattleNon | None
+    non: ModdedBattleNon | None
     queue: ModdedBattleQueue | None
     field: ModdedField | None
     actions: ModdedBattleActions | None

@@ -1,0 +1,2 @@
+class BattleActions:
+    pass

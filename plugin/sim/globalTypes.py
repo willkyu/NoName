@@ -1,9 +1,16 @@
-from typing import Literal
+from typing import Literal, TypedDict, Callable
 from re import compile, MULTILINE
+from __future__ import annotations
 
 from sim.battleQueue import BattleQueue
 from sim.dexItem import Item
 from sim.field import Field
+from sim.dexAbility import Ability
+from sim.dexMoves import ActiveMove
+from sim.dexSpecies import Species
+from sim.dexConditions import Condition
+from sim.dexFormat import Format
+from sim.nonClass import NONBattleEntity
 
 number = int | float
 SideID = Literal["p1", "p2", "p3", "p4"]
@@ -20,10 +27,47 @@ Action = Literal[
     "MoveAction", "SwitchAction", "TeamAction", "FieldAction", "PokemonAction"
 ]
 
+Effect = Ability | Item | ActiveMove | Species | Condition | Format
+
+
+GenderName = Literal["M", "F", "N", ""]
+StatIDExceptHP = Literal["ATK", "DEF", "SPA", "SPD", "SPE"]
+StatID = Literal["HP"] | StatIDExceptHP
+BoostID = Literal["ATK", "DEF", "SPA", "SPD", "SPE", "ACC", "EVA"]
+
+
+class StatsExceptHPTable(TypedDict):
+    ATK: int
+    DEF: int
+    SPA: int
+    SPD: int
+    SPE: int
+
+
+class StatsTable(TypedDict):
+    HP: int
+    ATK: int
+    DEF: int
+    SPA: int
+    SPD: int
+    SPE: int
+
+
+class BoostsTable(TypedDict):
+    HP: int
+    ATK: int
+    DEF: int
+    SPA: int
+    SPD: int
+    SPE: int
+    ACC: int
+    EVA: int
+
+
 splitRegex = compile("/^\|split\|p([1234])\n(.*)\n(.*)|.+", MULTILINE)
 
 
-class EffectData:
+class EffectData(TypedDict):
     name: str | None
     desc: str | None
     duration: number | None
@@ -35,6 +79,15 @@ class EffectData:
 
 class BattleScriptsData:
     gen: number
+
+
+class CommonHandlers:
+    ResultMove: bool | function
+    ExtResultMove: bool | function
+    ResultSourceMove: bool | function
+    ExtResultSourceMove: bool | function
+    ModifierEffect: function
+    pass
 
 
 class ModdedBattleActions:
@@ -203,3 +256,11 @@ class ModdedBattleScriptsData(BattleScriptsData):
     checkWin: function | None
     faintQueue: function | None
     pass
+
+
+class PlayerOptions:
+    name: str | None
+    avatar: str | None
+    rating: number | None
+    team: list[NONBattleEntity] | str | None
+    seed: PRNGSeed | None
