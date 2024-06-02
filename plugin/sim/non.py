@@ -1,19 +1,6 @@
-from dataclasses import dataclass
-from typing import Literal, Callable, Annotated
-from json import dump, load
-from os.path import exists
-from os import mkdir
-
+from sim.globalUtils import *
 from sim.species import SpeciesData
-from ability import Ability
-
-baseNonFilePath = "./plugin/data/NoName/data/"
-
-
-@dataclass
-class Range:
-    min: int
-    max: int
+from sim.ability import Ability
 
 
 LevelRange = Annotated[int, Range(1, 100)]
@@ -41,7 +28,6 @@ class EVs:
     SPA: EvRange
     SPD: EvRange
     SPE: EvRange
-    statList: list[str] = statList
 
     def changeEv(self, ev: str, num: int, addMode: bool = True):
         if ev.upper() not in statList:
@@ -56,10 +42,10 @@ class MoveSlot:
     move: str
     pp: int
     maxpp: int
+    used: bool
     target: str | None = None
     disabled: bool | str = False
     disabledSource: str | None = None
-    used: bool
 
 
 @dataclass
@@ -74,7 +60,7 @@ class NON(object):
     species: SpeciesData
     level: LevelRange
     gender: Literal["M", "F", "N"]
-    inBattle: str | None = None
+    inBattle: str
     item: str
     battleStatus: NonTempBattleStatus
     ability: Ability
@@ -90,15 +76,14 @@ class NON(object):
 
     def dump2Json(self):
         path = baseNonFilePath + "{}/NON/".format(self.masterId)
-        if not exists(path):
-            mkdir(path)
+        makeSureDir(path)
         with open(path + "{}.json".format(self.name), "w+") as f:
             dump(self, f)
 
     def loadFromJson(self, masterId: str, nonName: str):
         # 可能用不上，直接在外部定义一个从json读类的就可以
         path = baseNonFilePath + "{}/NON/{}.json".format(masterId, nonName)
-        if exists(path):
+        if os.path.exists(path):
             with open(path, "r") as f:
                 self.__dict__.update(load(f))
             return True
