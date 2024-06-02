@@ -4,6 +4,8 @@ from configparser import ConfigParser
 from json import dump, load
 import os
 
+BattleMode = Literal["single", "double", "chaos4"]
+
 baseNonFilePath = "./plugin/data/NoName/data/"
 
 

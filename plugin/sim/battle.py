@@ -11,6 +11,7 @@ class Battle:
         pass
 
     def eachTurn():
+
         pass
 
     def end():
