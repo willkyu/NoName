@@ -1,4 +1,7 @@
+import random
+
 from sim.globalUtils import *
+from livingArea import Area
 
 
 class Player:
@@ -22,3 +25,31 @@ class Player:
         return "————————————\n▼ ID[{}]身份认证成功.\n┣———————————\n│ 灵魂：{}\n│ DreamCrystal：{}\n————————————".format(
             self.id, self.coin, self.dreamCrystal
         )
+
+
+
+    #玩家获取新的NonBaby
+    def findNonBaby(self, msg: str):
+        global nonBabyId
+        if self.coin < 10:
+            return "余额为:{" + str(self.coin) + "},余额不足请下次再来捏"
+        elif msg == ".获取NonBaby":
+            nonBabyId = self.getRandomNonBabyId()
+            self.coin += -10
+            return nonBabyId
+        elif msg == ".获取沙漠NonBaby":
+            if self.coin < 20:
+                return "余额为:{" + str(self.coin) + "},余额不足请下次再来捏"
+            nonBabyId = self.getRandomNonBabyId()
+            self.coin += -20
+            return
+
+    def getRandomNonBabyId(self):
+        # 占位 做动态出现率
+        return random.randint(1, 10000)
+    #阶段收费
+    def judgeCoin(self, district: str):
+        if district == "":
+            return self.coin > 10
+        elif district == Area.DESERT:
+            return self.coin > 20
