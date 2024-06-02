@@ -71,7 +71,8 @@ class NON(object):
 
     statDict: dict[str, int] = {k: 0 for k in statList}
 
-    def __init__(self) -> None:
+    def __init__(self, nonDate: dict) -> None:
+        self.__dict__.update(nonDate)
         pass
 
     def dump2Json(self):
