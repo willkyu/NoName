@@ -1,7 +1,7 @@
 import random
 
 from sim.globalUtils import *
-from livingArea import Area
+from sim.livingArea import Area
 
 
 class Player:

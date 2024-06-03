@@ -89,9 +89,11 @@ class Field:
             player.id: Side(self.nonTeamDict[player.id], battleMode)
             for player in playerList
         }
-        for player in playerList:
-            for non in player.team:
-                non.inBattle
+
+        # 下面这里不太对，应该在battle里写
+        # for player in playerList:
+        #     for non in self.nonTeamDict:
+        #         non.inBattle=True
 
         pass
 
@@ -111,7 +113,7 @@ class Field:
         self.updateCommandPriority()
         commandPriorityDict = {
             commandTuple: (
-                command.priority,  #
+                command.priority,
                 self.sides[commandTuple[0]].calculateCommandSpeed(commandTuple[1]),
             )
             for commandTuple, command in commandDict.items()

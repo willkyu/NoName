@@ -3,6 +3,8 @@ from typing import Literal, Callable, Annotated
 from configparser import ConfigParser
 from json import dump, load
 import os
+import requests
+
 
 BattleMode = Literal["single", "double", "chaos4"]
 
@@ -62,3 +64,14 @@ def createNewConfig(playerId: str):
     makeSureDir(newdict["path"])
     with open(newdict["path"] + "userConfig.json", "w+") as f:
         dump(newdict, f)
+
+
+def getNickname(qqId: str) -> str:
+    try:
+        return eval(
+            requests.get(
+                "https://api.oioweb.cn/api/qq/info?qq={}".format(qqId)
+            ).content.decode("utf-8")
+        )["result"]["nickname"]
+    except:
+        return qqId

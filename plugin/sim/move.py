@@ -10,22 +10,13 @@ class MoveData:
 
     # 招式名
     name: str
-    # index，用于随机技能
-    idex: int | None
-    # 一些特殊效果，还没想好是函数还是字符串
-    condition: specialEffectClass
-    # 基础伤害
-    basePower: int
-    # 基础命中，如果为True就是必中技能，如果为False就是要实时计算的
-    accuracy: bool | int
+    cnName: str
     # 使用次数
     pp: int
     # 类型，物理魔法辅助
     category: Literal["Physical", "Magical", "Auxiliary"]
     # 属性，水火草这种
     type: str
-    # 先制度
-    priority: int
     # 目标范围
     target: Literal[
         "adjacentAlly",  # 相邻队友
@@ -44,15 +35,31 @@ class MoveData:
         "scripted",  # 反伤
         "self",  # 自己
     ]
+    # description
+    desc: str
+    # 用于随机技能
+    canBeRolled: bool = False
+    # 一些特殊效果，还没想好是函数还是字符串
+    condition: specialEffectClass | None = None
+    # 基础伤害
+    basePower: int | None = None
+    # 基础命中，如果为True就是必中技能，如果为False就是要实时计算的
+    accuracy: bool | int = True
+    # 先制度
+    priority: int = 0
     # 一些布尔型flag，比如是否能突破保护
-    flags: dict[str, bool]
+    flags: dict[str, bool] = {}
     # 招式附加效果
-    secondary: specialEffectClass
+    secondary: specialEffectClass | None = None
     # 是否固定伤害值
-    damage: None | int | Literal["level"]
+    damage: None | int | Literal["level"] = None
 
     # one hit knockout，str是免疫的属性
-    ohko: bool | str
+    ohko: bool | str = False
 
     # TODO
     pass
+
+
+def getMove(moveName: str):
+    return moveDataBase[moveName]

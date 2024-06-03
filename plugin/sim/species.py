@@ -76,3 +76,12 @@ class SpeciesData:
 
     # TODO
     pass
+
+
+def getSpeciesRateBuff(species: SpeciesData):
+    species.springRateBuff
+    species.nightRateBuff
+    # do what you want
+    res = 0
+    pass
+    return res
