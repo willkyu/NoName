@@ -26,10 +26,12 @@ class Player:
             self.id, self.coin, self.dreamCrystal
         )
 
-
-
-    #玩家获取新的NonBaby
+    # 玩家获取新的NonBaby
     def findNonBaby(self, msg: str):
+        """
+        TODO 这里我觉得应该直接传入参数了，比如区域的str，
+             指令直接在外部处理指令的地方判断。
+        """
         global nonBabyId
         if self.coin < 10:
             return "余额为:{" + str(self.coin) + "},余额不足请下次再来捏"
@@ -47,8 +49,9 @@ class Player:
     def getRandomNonBabyId(self):
         # 占位 做动态出现率
         return random.randint(1, 10000)
-    #阶段收费
+
     def judgeCoin(self, district: str):
+        # 阶段收费
         if district == "":
             return self.coin > 10
         elif district == Area.DESERT:
