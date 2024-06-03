@@ -3,6 +3,7 @@ from typing import Literal, Callable, Annotated
 from configparser import ConfigParser
 from json import dump, load
 import os
+from species import SpeciesData
 
 BattleMode = Literal["single", "double", "chaos4"]
 
@@ -62,3 +63,36 @@ def createNewConfig(playerId: str):
     makeSureDir(newdict["path"])
     with open(newdict["path"] + "userConfig.json", "w+") as f:
         dump(newdict, f)
+
+
+
+def getSpeciesBuffResult(species:SpeciesData, area: str):
+    if not species.liveArea.__contains__(area):
+        return 0
+    timePeriodRateBuff = getTimePeriodRateBuff()
+    seasonRateBuff = getSeasonRateBuff()
+    if timePeriodRateBuff == 0 or seasonRateBuff == 0:
+        return 0
+    return species.baseRateBuff + timePeriodRateBuff + seasonRateBuff
+
+def getTimePeriodRateBuff(species:SpeciesData):
+    now = datetime.datetime.now().hour
+    if 5 <= now < 10:
+        return species.morningRateBuff
+    elif 10 <= now < 14:
+        return species.noonRateBuff
+    elif 14 <= now < 17:
+        return species.afternoonRateBuff
+    elif 17 <= now <= 24 or 0 <= now < 5:
+        return species.nightRateBuff
+
+def getSeasonRateBuff(species:SpeciesData):
+    now = datetime.datetime.today().month
+    if 3 <= now < 6:
+        return species.springRateBuff
+    elif 6 <= now < 9:
+        return species.summerRateBuff
+    elif 9 <= now < 12:
+        return species.autumnRateBuff
+    elif now == 12 or now == 1 or now == 2:
+        return species.winterRateBuff
