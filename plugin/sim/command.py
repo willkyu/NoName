@@ -4,7 +4,7 @@ from sim.globalUtils import *
 @dataclass
 class Command:
     target: str | None
-    action: str | None
+    action: Literal["switch", "retire", "specialEvo", "move", "item"]
     move: str | None
     priority: int = 0
 

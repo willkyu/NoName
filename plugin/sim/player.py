@@ -1,11 +1,12 @@
 import random
 
 from sim.globalUtils import *
-from livingArea import Area
+from sim.livingArea import Area
 
 
 class Player:
     id: str
+    nickname: str
     path: str
     team: Annotated[list[str], "len must <= 6"] | None
     coin: int = 0
@@ -13,6 +14,7 @@ class Player:
 
     def __init__(self, playerId: str) -> None:
         self.id = playerId
+        self.nickname = getNickname(self.id)
         self.path = baseNonFilePath + "{}/".format(self.id)
         if not os.path.exists(self.path + "userConfig.json"):
             createNewConfig(self.id)
@@ -22,14 +24,16 @@ class Player:
         pass
 
     def __str__(self) -> str:
-        return "————————————\n▼ ID[{}]身份认证成功.\n┣———————————\n│ 灵魂：{}\n│ DreamCrystal：{}\n————————————".format(
+        return "————————————\n▼ ID[{}]身份认证成功.\n▼ 以[{}]进行登入.\n┣———————————\n│ 灵魂：{}\n│ DreamCrystal：{}\n————————————".format(
             self.id, self.coin, self.dreamCrystal
         )
 
-
-
-    #玩家获取新的NonBaby
+    # 玩家获取新的NonBaby
     def findNonBaby(self, msg: str):
+        """
+        TODO 这里我觉得应该直接传入参数了，比如区域的str，
+             指令直接在外部处理指令的地方判断。
+        """
         global nonBabyId
         if self.coin < 10:
             return "余额为:{" + str(self.coin) + "},余额不足请下次再来捏"
@@ -47,8 +51,9 @@ class Player:
     def getRandomNonBabyId(self):
         # 占位 做动态出现率
         return random.randint(1, 10000)
-    #阶段收费
+
     def judgeCoin(self, district: str):
+        # 阶段收费
         if district == "":
             return self.coin > 10
         elif district == Area.DESERT:

@@ -1,5 +1,6 @@
 from sim.battle import *
 
+
 print("Done.")
 
 
@@ -12,3 +13,7 @@ print(
         )
     ]
 )
+
+
+test = getNickname("403363659")
+print(test)
