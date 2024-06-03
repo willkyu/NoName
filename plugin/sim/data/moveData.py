@@ -25,3 +25,9 @@ moveDataBase: list[MoveData] = [
         # 怎么导致异常状态呢？函数还是变量
     ),
 ]
+
+moveDataDictEn: dict[MoveData] = {movedata.name: movedata for movedata in moveDataBase}
+
+moveDataDictCn: dict[MoveData] = {
+    movedata.cnName: movedata for movedata in moveDataBase
+}

@@ -59,7 +59,3 @@ class MoveData:
 
     # TODO
     pass
-
-
-def getMove(moveName: str):
-    return moveDataBase[moveName]

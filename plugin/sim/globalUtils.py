@@ -5,6 +5,8 @@ from json import dump, load
 import os
 import requests
 
+from sim.data.moveData import *
+
 
 BattleMode = Literal["single", "double", "chaos4"]
 
@@ -75,3 +77,7 @@ def getNickname(qqId: str) -> str:
         )["result"]["nickname"]
     except:
         return qqId
+
+
+def getMoveEn(moveNameEn: str):
+    return moveDataDictEn[moveNameEn]
