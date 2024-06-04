@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Literal
 
+
 specialEffectClass = Callable | str | None  # 特殊效果，还没想好是函数还是字符串
 
 

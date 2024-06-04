@@ -1,4 +1,4 @@
-from ..move import MoveData
+from sim.move import MoveData
 
 moveDataBase: list[MoveData] = [
     MoveData(
@@ -26,8 +26,10 @@ moveDataBase: list[MoveData] = [
     ),
 ]
 
-moveDataDictEn: dict[MoveData] = {movedata.name: movedata for movedata in moveDataBase}
+moveDataDictEn: dict[str, MoveData] = {
+    movedata.name: movedata for movedata in moveDataBase
+}
 
-moveDataDictCn: dict[MoveData] = {
+moveDataDictCn: dict[str, MoveData] = {
     movedata.cnName: movedata for movedata in moveDataBase
 }
