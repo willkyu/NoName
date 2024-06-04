@@ -1,7 +1,10 @@
+from random import shuffle
+
 from sim.globalUtils import *
 from sim.non import NON
 from sim.command import Command
 from sim.player import Player
+from sim.nonEvents import NonEventsObj
 
 
 class Side:
@@ -52,13 +55,13 @@ class Side:
             str|bool: _description_
         """
         if command.move not in [
-            moveslot.move for moveslot in self.activeNon[index].moveSlots
+            moveslot.move for moveslot in self.activeNons[index].moveSlots
         ]:
             return "无法使用该NON不会的招式"
         # 这之后可以再加别的检查合法性，比如不能交换状态进行交换
         return True
 
-    def calculateCommandSpeed(self, commandIndex: int) -> int:
+    def calculateNonSpeed(self, commandIndex: int) -> int:
         # 计算指令的NON的当前速度
         pass
 
@@ -68,6 +71,7 @@ class Side:
 class Field:
     sides: dict[str, Side]  # {userId: Side}
     nonTeamDict: dict[str, list[NON]]  # {userId:[NON]}
+    log: list[str]
 
     weather: str = "Normal"
 
@@ -80,15 +84,19 @@ class Field:
         self,
         playerList: Annotated[list[Player], "len should be 2 or 4"],
         battleMode: BattleMode,
+        log: list[str],
     ) -> None:
         self.nonTeamDict = {
-            player.id: [Field.getNonEntity(non) for non in player.team]
+            player.id: [getNonEntity(non) for non in player.team]
             for player in playerList
         }
         self.sides = {
             player.id: Side(self.nonTeamDict[player.id], battleMode)
             for player in playerList
         }
+        self.log = log
+
+        self.changed = []
 
         # 下面这里不太对，应该在battle里写
         # for player in playerList:
@@ -105,7 +113,12 @@ class Field:
     def calculateCommandOrder(self):
         # 计算指令的顺序，同优先级下速度快的优先
         commandDict: dict[tuple[str, int], Command] = {}
-        for sideId, side in self.sides.items():
+
+        # 使用shuffle打乱顺序，实现相同速度下的随机排序
+        shuffledSideList = self.sides.items()
+        shuffle(shuffledSideList)
+
+        for sideId, side in shuffledSideList:
             for commandIndex, command in side.commandList.items():
                 commandDict[(sideId, commandIndex):command]
 
@@ -114,7 +127,7 @@ class Field:
         commandPriorityDict = {
             commandTuple: (
                 command.priority,
-                self.sides[commandTuple[0]].calculateCommandSpeed(commandTuple[1]),
+                self.sides[commandTuple[0]].calculateNonSpeed(commandTuple[1]),
             )
             for commandTuple, command in commandDict.items()
         }
@@ -126,20 +139,47 @@ class Field:
             )
         ]
 
+    def calculateSpeedOrder(self, returnNonEntity=False):
+        nonSpeedDict: dict[tuple[str, int], NON] = {}
+
+        # 使用shuffle打乱顺序，实现相同速度下的随机排序
+        shuffledSideList = self.sides.items()
+        shuffle(shuffledSideList)
+
+        for sideId, side in shuffledSideList:
+            for nonIdx in len(side.activeNons):
+                nonSpeedDict[(sideId, nonIdx) : side.calculateNonSpeed(nonIdx)]
+
+        returnList = [
+            key for key in sorted(nonSpeedDict.keys(), key=lambda x: (-nonSpeedDict[x]))
+        ]
+        if returnNonEntity:
+            returnList = [
+                self.sides[nonTuple[0]].activeNons[nonTuple[1]]
+                for nonTuple in returnList
+            ]
+        return returnList
+
     def updateCommandPriority(
         self, commandDict: dict[tuple[str, int], Command]
     ) -> None:
         # 特殊情况下的优先级更新，比如追击
         pass
 
-    @staticmethod
-    def getNonEntity(masterId: str, nonName: str) -> NON | bool:
-        # 从json获取NON实体
-        path = baseNonFilePath + "{}/NON/{}.json".format(masterId, nonName)
-        if os.path.exists(path):
-            with open(path, "r") as f:
-                non = NON(load(f))
-            return non
-        else:
-            # Oh fuck! It's impossible!
-            return False
+    def eventTrigger(self, eventName: str, **kwargs):
+        if not hasattr(NonEventsObj, eventName):
+            return
+        for non in self.calculateSpeedOrder(returnNonEntity=True):
+            eval("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
+
+
+def getNonEntity(masterId: str, nonName: str) -> NON | bool:
+    # 从json获取NON实体
+    path = baseNonFilePath + "{}/NON/{}.json".format(masterId, nonName)
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            non = NON(load(f))
+        return non
+    else:
+        # Oh fuck! It's impossible!
+        return False

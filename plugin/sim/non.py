@@ -1,39 +1,7 @@
 from sim.globalUtils import *
 from sim.species import SpeciesData
 from sim.ability import Ability
-
-
-LevelRange = Annotated[int, Range(1, 100)]
-IvRange = Annotated[int, Range(0, 31)]
-EvRange = Annotated[int, Range(0, 252)]
-
-statList = ["HP", "ATK", "DEF", "SPA", "SPD", "SPE"]
-
-
-@dataclass
-class IVs:
-    HP: IvRange
-    ATK: IvRange
-    DEF: IvRange
-    SPA: IvRange
-    SPD: IvRange
-    SPE: IvRange
-
-
-@dataclass
-class EVs:
-    HP: EvRange
-    ATK: EvRange
-    DEF: EvRange
-    SPA: EvRange
-    SPD: EvRange
-    SPE: EvRange
-
-    def changeEv(self, ev: str, num: int, addMode: bool = True):
-        if ev.upper() not in statList:
-            print("Ev not valid!")
-            return
-        eval("self.{}{}={}".format(ev.upper(), "+" if addMode else "-", num))
+from sim.nonEvents import NonEvents
 
 
 @dataclass
@@ -54,16 +22,18 @@ class NonTempBattleStatus:
     usedItemThisTurn: bool
 
 
+@dataclass
 class NON(object):
     name: str
     masterId: str
     species: SpeciesData
     level: LevelRange
     gender: Literal["M", "F", "N"]
-    inBattle: str
+    inBattle: str  # should be '' if not in battle
     item: str
     battleStatus: NonTempBattleStatus
     ability: Ability
+    nonEvents: NonEvents
 
     moveSlots: list[MoveSlot]
     ivs: IVs
@@ -71,9 +41,8 @@ class NON(object):
 
     statDict: dict[str, int] = {k: 0 for k in statList}
 
-    def __init__(self, nonDate: dict) -> None:
-        self.__dict__.update(nonDate)
-        pass
+    def save(self):
+        self.dump2Json()
 
     def dump2Json(self):
         path = baseNonFilePath + "{}/NON/".format(self.masterId)

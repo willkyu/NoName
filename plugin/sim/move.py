@@ -48,7 +48,7 @@ class MoveData:
     # 先制度
     priority: int = 0
     # 一些布尔型flag，比如是否能突破保护
-    flags: dict[str, bool] = {}
+    flags: dict[str, bool] | None = None
     # 招式附加效果
     secondary: specialEffectClass | None = None
     # 是否固定伤害值
