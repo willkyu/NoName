@@ -1,7 +1,7 @@
 from sim.globalUtils import *
 from sim.species import SpeciesData
 from sim.ability import Ability
-from sim.nonEvents import NonEvents
+from sim.nonEvents import NonEventsObj
 
 
 @dataclass
@@ -33,7 +33,7 @@ class NON(object):
     item: str
     battleStatus: NonTempBattleStatus
     ability: Ability
-    nonEvents: NonEvents
+    nonEvents: NonEventsObj
 
     moveSlots: list[MoveSlot]
     ivs: IVs

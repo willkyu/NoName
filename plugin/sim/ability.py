@@ -18,6 +18,6 @@ class Ability:
 
 @dataclass
 class SpeciesAbilities:
-    A1: Ability
-    A2: Ability
-    H: Ability
+    A1: str  # ability 1
+    A2: str  # ability 2
+    H: str  # hidden ability

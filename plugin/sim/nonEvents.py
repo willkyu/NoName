@@ -87,5 +87,6 @@ class NonEventsObj:
 
     def __post_init__(self) -> None:
         for k in self.__dict__.keys():
-            self.__setattr__(k, defaultNonEvent)
+            if self.__getattribute__(k) is None:
+                self.__setattr__(k, defaultNonEvent)
         pass
