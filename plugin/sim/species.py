@@ -1,5 +1,24 @@
 from sim.globalUtils import *
-from sim.ability import Ability
+from sim.ability import Ability, SpeciesAbilities
+
+
+@dataclass
+class RateBuff:
+    springRateBuff: int
+    summerRateBuff: int
+    autumnRateBuff: int
+    winterRateBuff: int
+
+    # 时间段,int对应该时段最后时间点
+    # class TimePeriod(Enum):
+    #     MORNING = "早晨"
+    #     NOON = "中午"
+    #     AFTERNOON = "下午"
+    #     NIGHT = "夜晚"
+    morningRateBuff: int
+    noonRateBuff: int
+    afternoonRateBuff: int
+    nightRateBuff: int
 
 
 @dataclass
@@ -7,7 +26,7 @@ class SpeciesData:
     name: str
     idex: int
     types: list[str]
-    abilities: dict[str, Ability]
+    abilities: SpeciesAbilities
 
     """
     出现率相关
@@ -20,32 +39,15 @@ class SpeciesData:
 
     baseRateBuff: int
 
-    # 你这个不能写个列表或者字典吗，这样一堆好长
-    springRateBuff: int
-    summerRateBuff: int
-    autumnRateBuff: int
-    winterRateBuff: int
-
-    # 这个也是
-    morningRateBuff: int
-    noonRateBuff: int
-    afternoonRateBuff: int
-    nightRateBuff: int
-
-    # 时间段,int对应该时段最后时间点
-    # class TimePeriod(Enum):
-    #     MORNING = "早晨"
-    #     NOON = "中午"
-    #     AFTERNOON = "下午"
-    #     NIGHT = "夜晚"
+    rateBuff: RateBuff
 
     # TODO
     pass
 
 
 def getSpeciesRateBuff(species: SpeciesData):
-    species.springRateBuff
-    species.nightRateBuff
+    species.rateBuff.springRateBuff
+    species.rateBuff.nightRateBuff
     # do what you want
     res = 0
     pass

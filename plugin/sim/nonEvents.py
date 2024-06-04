@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Callable, Literal
 from dataclasses import dataclass
 
-from sim.globalUtils import *
+# from sim.globalUtils import *
 
 """
 * Simple字段的类只是用来类型提示的，没有其他作用
@@ -14,7 +14,7 @@ class SimpleNON:
     name: str
     masterId: str
     species: Literal["SpeciesData"]
-    level: LevelRange
+    level: Literal["LevelRange"]
     gender: Literal["M", "F", "N"]
     inBattle: str  # should be '' if not in battle
     item: str
@@ -23,8 +23,6 @@ class SimpleNON:
     nonEvents: Literal["NonEvents"]
 
     moveSlots: list[Literal["MoveSlot"]]
-    ivs: IVs
-    evs: EVs
 
     statDict: dict[str, int]
 
@@ -82,6 +80,7 @@ defaultNonEvent = NonEvent("")
 
 @dataclass
 class NonEventsObj:
+    onActiveOnce: NonEvent = None
     beforeSwitch: NonEvent = None
     afterSwitch: NonEvent = None
     onWeatherChanged: NonEvent = None
