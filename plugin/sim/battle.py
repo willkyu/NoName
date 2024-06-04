@@ -76,6 +76,7 @@ class Battle:
         pass
 
     def eachTurn(self):
+        self.turn += 1
         commandListThisTurn = self.field.calculateCommandOrder()
         for commandTuple in commandListThisTurn:
             self.field.exeCommand(*commandTuple)
