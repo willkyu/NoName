@@ -24,7 +24,7 @@ class Player:
         with open(self.path + "userConfig.json", "r", encoding="utf-8") as f:
             self.__dict__.update(json.load(f))
         self.coin = readCoin(self.id)
-        print(self.__dict__)
+        # print(self.__dict__)
         pass
 
     def __str__(self) -> str:

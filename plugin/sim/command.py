@@ -1,5 +1,7 @@
 from sim.globalUtils import *
 
+# from sim.data.moveData import moveDataDictEn
+
 
 @dataclass
 class Command:
@@ -16,4 +18,5 @@ class Command:
 
 
 def getMovePriority(move: str) -> int:
+    return moveDataDictEn[move].priority
     pass

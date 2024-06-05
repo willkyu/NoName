@@ -15,6 +15,9 @@ speciesDataBase: list[SpeciesData] = [
         ),
         liveArea=["平原", "沼泽"],
         rateBuff=normalRateBuff,
+        speciesStrength=SpeciesStrength(
+            HP=100, ATK=100, DEF=100, SPA=100, SPD=100, SPE=100
+        ),
     )
 ]
 

@@ -13,7 +13,7 @@ class Side:
     activeNons: list[NON]
     notActiveNons: list[NON]
 
-    commandList: dict[int, Command]
+    commandDict: dict[int, Command]
 
     # 一些其他的东西，如护盾
     shield: bool = False
@@ -21,7 +21,7 @@ class Side:
     def __init__(self, team: list[NON], battleMode: BattleMode) -> None:
         self.nonNum = 2 if battleMode == "double" else 1
         self.activeNons, self.notActiveNons = team[: self.nonNum], team[self.nonNum :]
-        self.commandList = {}
+        self.commandDict = {i: None for i in range(self.nonNum)}
 
     def addCommand(self, index: int, command: Command) -> str | bool:
         """添加指令，如果成功返回True，否则是str，描述不合法原因
@@ -42,7 +42,8 @@ class Side:
         # 这里添加其他可能性
         pass
 
-        self.commandList[index] = Command
+        self.commandDict[index] = command
+        print("{}已添加:\n{}\n".format(index, command))
         return True
 
     def checkCommandValid(self, index: int, command: Command) -> str | bool:
@@ -56,7 +57,7 @@ class Side:
             str|bool: _description_
         """
         if command.move not in [
-            moveslot.move for moveslot in self.activeNons[index].moveSlots
+            moveslot for moveslot in self.activeNons[index].moveSlots.keys()
         ]:
             return "无法使用该NON不会的招式"
         # 这之后可以再加别的检查合法性，比如不能交换状态进行交换
@@ -64,7 +65,14 @@ class Side:
 
     def calculateNonSpeed(self, commandIndex: int) -> int:
         # 计算指令的NON的当前速度
+        non = self.activeNons[commandIndex]
+        return non.stat.SPE
         pass
+
+    def getAllCommand(self) -> bool:
+        if None in self.commandDict.values():
+            return False
+        return True
 
     pass
 
@@ -89,7 +97,7 @@ class Field:
         log: list[str],
     ) -> None:
         self.nonTeamDict = {
-            player.id: [getNonEntity(non) for non in player.team]
+            player.id: [getNonEntity(player.id, non) for non in player.team]
             for player in playerList
         }
         self.sides = {
@@ -110,7 +118,7 @@ class Field:
     def exeCommand(self, sideId: str, commandIndex: int):
         # * 注意，exeCommand之前必须确保指令可行，也就是在addCommand阶段就要检查指令可行性
         # do this command
-        command: Command = self.sides[sideId].commandList[commandIndex]
+        command: Command = self.sides[sideId].commandDict[commandIndex]
         match command.action:
             case "retire":
                 # sideId输
@@ -137,7 +145,7 @@ class Field:
         pass
 
     def exeMove(self, sideId: str, commandIndex: int):
-        command: Command = self.sides[sideId].commandList[commandIndex]
+        command: Command = self.sides[sideId].commandDict[commandIndex]
         non = self.tuple2Non((sideId, commandIndex))
         non.moveSlots[command.move].pp -= 1
         targetTuple = self.getNonTuple(command.target)
@@ -147,6 +155,11 @@ class Field:
                 non,
                 non.moveSlots[command.move],
                 targetNon,
+            )
+            self.log.append(
+                "{}受到了{}点伤害，还剩{}HP.".format(
+                    command.target, damage, targetNon.hp - damage
+                )
             )
             targetNon.hp -= damage
             if targetNon.hp <= 0:
@@ -175,8 +188,8 @@ class Field:
         damage = multiply * (
             (2 * orgNon.level + 10)
             / 250
-            * (orgNon.stat.ATK if category == "Physical" else orgNon.stat.DEF)
-            / (targetNon.stat.ATK if category == "Physical" else targetNon.stat.DEF)
+            * (orgNon.stat.ATK if category == "Physical" else orgNon.stat.SPA)
+            / (targetNon.stat.DEF if category == "Physical" else targetNon.stat.SPD)
             * move.move.basePower
             + 2
         )
@@ -188,15 +201,16 @@ class Field:
         commandDict: dict[tuple[str, int], Command] = {}
 
         # 使用shuffle打乱顺序，实现相同速度下的随机排序
-        shuffledSideList = self.sides.items()
+        # * 这样做不太对，需要重写
+        shuffledSideList = list(self.sides.items())
         shuffle(shuffledSideList)
 
         for sideId, side in shuffledSideList:
-            for commandIndex, command in side.commandList.items():
-                commandDict[(sideId, commandIndex):command]
+            for commandIndex, command in side.commandDict.items():
+                commandDict[(sideId, commandIndex)] = command
 
         # calculate the order
-        self.updateCommandPriority()
+        self.updateCommandPriority(commandDict)
         commandPriorityDict = {
             commandTuple: (
                 command.priority,
@@ -208,7 +222,7 @@ class Field:
         return [
             key
             for key, value in sorted(
-                commandPriorityDict.items(), key=lambda x: (-x[1][0], -x[1][1])
+                list(commandPriorityDict.items()), key=lambda x: (-x[1][0], -x[1][1])
             )
         ]
 
@@ -221,7 +235,7 @@ class Field:
 
         for sideId, side in shuffledSideList:
             for nonIdx in len(side.activeNons):
-                nonSpeedDict[(sideId, nonIdx) : side.calculateNonSpeed(nonIdx)]
+                nonSpeedDict[(sideId, nonIdx)] = side.calculateNonSpeed(nonIdx)
 
         returnList = [
             key for key in sorted(nonSpeedDict.keys(), key=lambda x: (-nonSpeedDict[x]))
@@ -297,7 +311,7 @@ def getNonEntity(masterId: str, nonName: str) -> NON | bool:
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
             non = NON(**load(f))
-        non.toEntity()
+        # non.toEntity()
         return non
     else:
         # Oh fuck! It's impossible!

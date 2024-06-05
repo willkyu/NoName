@@ -1,3 +1,5 @@
+import math
+
 from sim.globalUtils import *
 from sim.species import SpeciesData
 from sim.ability import Ability
@@ -8,8 +10,8 @@ from sim.data.speciesData import speciesDataDictEn
 
 @dataclass
 class MoveSlot:
-    id: str
     name: str
+    id: str = None
     nameCn: str = None
     move: MoveData = None
     pp: int = None
@@ -60,26 +62,56 @@ class NON(object):
         self.statsLevel = StatLevel()
         self.nonEvents = NonEventsObj()
         self.battleStatus = NonTempBattleStatus()
+        self.toEntity()  # only test
+        if self.stat == None:
+            self.calculateStat()
+
+    def calculateStat(self):
+        HP: int
+        statDict = {}
+        for stat in statList:
+            self.species.speciesStrength.HP
+            self.ivs.HP
+            self.evs.HP
+            statDict[stat] = eval(
+                "math.floor({}+(self.level*(2*self.species.speciesStrength.{}+self.ivs.{}+math.sqrt(self.evs.{}) / 8))/100)".format(
+                    10 if stat == "HP" else 5, stat, stat, stat
+                )
+            )
+        self.hpmax = statDict["HP"]
+        self.hp = statDict["HP"]
+        self.stat = StatValue(**{k: v for k, v in statDict.items() if k != "HP"})
 
     def save(self):
         self.dump2Json()
 
     def dump2Json(self, test=False):
-        self.toStr()
+        if not test:
+            self.toStr()
         path = baseNonFilePath + "{}/NON/".format(self.masterId)
         if test:
             path = "./"
         makeSureDir(path)
-        print(os.path.abspath(path))
+        # print(os.path.abspath(path))
         with open(path + "{}.json".format(self.name), "w+", encoding="utf-8") as f:
             dump(self, f, default=lambda obj: obj.__dict__, ensure_ascii=False)
         self.toEntity()
 
     def toEntity(self):
+        self.ivs = IVs(**self.ivs)
+        self.evs = EVs(**self.evs)
+        if self.stat is not None:
+            self.stat = StatValue(**self.stat)
+        for k in self.moveSlots.keys():
+            self.moveSlots[k] = MoveSlot(k)
         self.species = speciesDataDictEn[self.species]
         self.ability = abilityDataDictEn[self.ability]
 
     def toStr(self):
+        self.ivs = self.ivs.__dict__
+        self.evs = self.evs.__dict__
+        for k in self.moveSlots.keys():
+            self.moveSlots[k] = {"name": k}
         self.species = self.species.name
         self.ability = self.ability.name
 
