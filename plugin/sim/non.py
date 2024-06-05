@@ -124,3 +124,19 @@ class NON(object):
             return True
         else:
             return False
+
+
+def initNonFrom(speciesType: str) -> NON:
+    # TODO
+    NON(
+        name="测试NON",
+        masterId="496373158",
+        species="NillKyu",
+        level=5,
+        gender="N",
+        inBattle="",
+        ability="Hello World",
+        moveSlots={"Tackle": {"name": "Tackle"}},
+        ivs=IVs().__dict__,
+        evs=EVs().__dict__,
+    )
