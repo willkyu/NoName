@@ -1,48 +1,39 @@
 import random
-from dataclasses import dataclass
-
 from species import SpeciesData
 import datetime
-import json
+from data.speciesData import speciesDataBase
 
 
-@dataclass
-class Roll:
-    pass
+# todo 补充补给品类和获取
+def getNonSpecies(self, area: str):
+    # 总权重,用于生成随机数种子
+    buffSum = 0
+    # 从json文件读取类信息,来获取权重总和等信息
 
-    # todo 补充补给品类和获取
-    def getNonSpecies(self, area: str):
-        # 总权重,用于生成随机数种子
-        buffSum = 0
-        # 从json文件读取类信息,来获取权重总和等信息
-        with open(
-            "/plugin/sim/data/nonSpecies/NonSpecies.json", "r", encoding="utf-8"
-        ) as file:
-            data = json.load(file)
-        for item in data:
-            species = SpeciesData(**item)
-            buffSum += self.getSpeciesBuffResult(species, area)
-        # 生成1-buffSum之间的随机整数,补给品占比为80%
-        suppliesNum = (buffSum * 8) // 10
-        # 轮询权重,用来检测落在哪个范围
-        rateSum = suppliesNum
-        randomNum = random.randint(1, buffSum)
-        # 看落在哪个区间,则获取对应的种族
-        for item in data:
-            species = SpeciesData(**item)
-            rateSum += self.getSpeciesBuffResult(species, area)
-            if rateSum >= randomNum:
-                return species
+    for item in speciesDataBase:
+        buffSum += self.getSpeciesBuffResult(item, area)
+    # 生成1-buffSum之间的随机整数,补给品占比为80%
+    suppliesNum = (buffSum * 8) // 10
+    # 轮询权重,用来检测落在哪个范围
+    randomNum = random.randint(1, suppliesNum + buffSum)
 
-    # 获取总权重
-    def getSpeciesBuffResult(species: SpeciesData, area: str):
-        if not species.liveArea.__contains__(area):
-            return 0
-        timePeriodRateBuff = getTimePeriodRateBuff(species)
-        seasonRateBuff = getSeasonRateBuff(species)
-        if timePeriodRateBuff == 0 or seasonRateBuff == 0:
-            return 0
-        return species.baseRateBuff + timePeriodRateBuff + seasonRateBuff
+    rateSum = suppliesNum
+    # 看落在哪个区间,则获取对应的种族
+    for item in speciesDataBase:
+        rateSum += self.getSpeciesBuffResult(item, area)
+        if rateSum >= randomNum:
+            return item
+
+
+# 获取总权重
+def getSpeciesBuffResult(species: SpeciesData, area: str):
+    if not species.liveArea.__contains__(area):
+        return 0
+    timePeriodRateBuff = getTimePeriodRateBuff(species)
+    seasonRateBuff = getSeasonRateBuff(species)
+    if timePeriodRateBuff == 0 or seasonRateBuff == 0:
+        return 0
+    return species.baseRateBuff + timePeriodRateBuff + seasonRateBuff
 
 
 # 获取时间权重
