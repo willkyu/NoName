@@ -1,9 +1,9 @@
 from sim.species import *
 from sim.data.abilityData import abilityDataDictEn
 
-normalRateBuff = RateBuff([5] * 8)
+normalRateBuff = RateBuff(*[5 for i in range(8)])
 
-speciesDataBase = list[SpeciesData] = [
+speciesDataBase: list[SpeciesData] = [
     SpeciesData(
         name="NillKyu",
         idex=1,
@@ -17,3 +17,8 @@ speciesDataBase = list[SpeciesData] = [
         rateBuff=normalRateBuff,
     )
 ]
+
+
+speciesDataDictEn: dict[str, SpeciesData] = {
+    speciesData.name: speciesData for speciesData in speciesDataBase
+}

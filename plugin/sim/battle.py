@@ -99,9 +99,14 @@ class Battle:
         commandListThisTurn = self.field.calculateCommandOrder()
         for commandTuple in commandListThisTurn:
             self.field.exeCommand(*commandTuple)
+
+        # 回合结束处理
+        self.field.eventTriggerAll("endTurnEvent")
+
+        # 检查所有fainted的NON
         pass
 
-    def end(self):
+    def end(self, winnerId: str):
         pass
 
     pass

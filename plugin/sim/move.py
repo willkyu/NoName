@@ -9,9 +9,10 @@ specialEffectClass = Callable | str | None  # 特殊效果，还没想好是函�
 class MoveData:
     """招式数据类型，不是具体绑定在NON身上的招式"""
 
+    id: int
     # 招式名
     name: str
-    cnName: str
+    nameCn: str
     # 使用次数
     pp: int
     # 类型，物理魔法辅助

@@ -37,9 +37,9 @@ class SpeciesData:
     # 我觉得liveArea在这里可以不写，直接在area那里调用找这里的概率就行
     liveArea: list[str]
 
-    baseRateBuff: int
+    baseRateBuff: int = 5
 
-    rateBuff: RateBuff
+    rateBuff: RateBuff = None
 
     # TODO
     pass

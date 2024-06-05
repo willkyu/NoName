@@ -2,8 +2,9 @@ from sim.move import MoveData
 
 moveDataBase: list[MoveData] = [
     MoveData(
+        id=1,
         name="Tackle",
-        cnName="撞击",
+        nameCn="撞击",
         pp=40,
         category="Physical",
         type="Normal",
@@ -13,8 +14,9 @@ moveDataBase: list[MoveData] = [
         desc="使用全身的力气撞击目标。",
     ),
     MoveData(
+        id=2,
         name="Ember",
-        cnName="火花",
+        nameCn="火花",
         pp=30,
         category="Magical",
         type="Fire",
@@ -31,5 +33,5 @@ moveDataDictEn: dict[str, MoveData] = {
 }
 
 moveDataDictCn: dict[str, MoveData] = {
-    moveData.cnName: moveData for moveData in moveDataBase
+    moveData.nameCn: moveData for moveData in moveDataBase
 }

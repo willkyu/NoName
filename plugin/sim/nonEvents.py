@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Callable, Literal
 from dataclasses import dataclass
+from functools import partial
 
 # from sim.globalUtils import *
 
@@ -65,28 +66,34 @@ class SimpleField:
 
 @dataclass
 class NonEvent:
-    reason: str
-    exe: Callable[[SimpleField, dict[str, object]], None]
+    reason: str = None
+    exe: Callable[[SimpleField, dict[str, object]], None] = None
 
-    def exe(self, field: SimpleField, **kwargs):
+    def __post_init__(self):
+        if self.exe == None:
+            self.exe = self.defaultExe
+        else:
+            self.exe = partial(self.exe, self)
+
+    def defaultExe(self, field: SimpleField, **kwargs):
         pass
 
 
 def nonEventFunExample(self: NonEvent, field: SimpleField, **kwargs):
-    """一个例子"""
-    if field.weather == "Rainy":
-        field.log += "天气没有任何变化……\n"
-        return
-    field.weather = "Rainy"
-    field.log += "天气变成了雨天……\n"
+    field.updateWeather("Rainy", reason="Rainy Ability", **kwargs)
 
-    field.eventTrigger(field, "onWeatherChanged", **kwargs)
-    pass
+    # """一个例子"""
+    # if field.weather == "Rainy":
+    #     field.log.append("天气没有任何变化……\n")
+    #     return
+    # field.weather = "Rainy"
+    # field.log.append("天气变成了雨天……\n")
+
+    # field.eventTrigger(field, "onWeatherChanged", **kwargs)
+    # pass
 
 
 nonEventExample = NonEvent("MakeRain Ability", nonEventFunExample)  # 一个例子
-
-defaultNonEvent = NonEvent("")
 
 
 @dataclass
@@ -99,5 +106,5 @@ class NonEventsObj:
     def __post_init__(self) -> None:
         for k in self.__dict__.keys():
             if self.__getattribute__(k) is None:
-                self.__setattr__(k, defaultNonEvent)
+                self.__setattr__(k, NonEvent())
         pass

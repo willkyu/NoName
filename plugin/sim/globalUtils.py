@@ -12,6 +12,7 @@ from sim.data.moveData import *
 BattleMode = Literal["single", "double", "chaos4"]
 
 baseNonFilePath = "./plugin/data/NoName/data/"
+baseNonFilePath = "./"
 
 
 @dataclass
@@ -65,7 +66,7 @@ def createNewConfig(playerId: str):
         "dreamCrystal": 0,
     }
     makeSureDir(newdict["path"])
-    with open(newdict["path"] + "userConfig.json", "w+") as f:
+    with open(newdict["path"] + "userConfig.json", "w+", encoding="utf-8") as f:
         dump(newdict, f)
 
 
@@ -73,7 +74,7 @@ def getNickname(qqId: str) -> str:
     try:
         return eval(
             requests.get(
-                "https://api.oioweb.cn/api/qq/info?qq={}".format(qqId)
+                "https://api.oioweb.cn/api/qq/info?qq={}".format(qqId), timeout=(1, 2)
             ).content.decode("utf-8")
         )["result"]["nickname"]
     except:
@@ -82,6 +83,10 @@ def getNickname(qqId: str) -> str:
 
 def getMoveEn(moveNameEn: str):
     return moveDataDictEn[moveNameEn]
+
+
+def getMoveCn(moveNameCn: str):
+    return moveDataDictCn[moveNameCn]
 
 
 LevelRange = Annotated[int, Range(1, 100)]
@@ -103,7 +108,7 @@ class IVs:
 
 
 @dataclass
-class StatsLevel:
+class StatLevel:
     ATK: statsLevelRange = 0
     DEF: statsLevelRange = 0
     SPA: statsLevelRange = 0
@@ -111,6 +116,15 @@ class StatsLevel:
     SPE: statsLevelRange = 0
     ACC: statsLevelRange = 0
     EVA: statsLevelRange = 0
+
+
+@dataclass
+class StatValue:
+    ATK: int = 0
+    DEF: int = 0
+    SPA: int = 0
+    SPD: int = 0
+    SPE: int = 0
 
 
 @dataclass
