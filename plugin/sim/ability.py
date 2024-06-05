@@ -15,6 +15,9 @@ class Ability:
     addNonEvents: NonEventsObj
     # TODO
 
+    def __str__(self) -> str:
+        return self.cnName
+
 
 @dataclass
 class SpeciesAbilities:

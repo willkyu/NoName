@@ -154,10 +154,11 @@ class Field:
             key for key in sorted(nonSpeedDict.keys(), key=lambda x: (-nonSpeedDict[x]))
         ]
         if returnNonEntity:
-            returnList = [
+            newreturnList = [
                 self.sides[nonTuple[0]].activeNons[nonTuple[1]]
                 for nonTuple in returnList
             ]
+            return returnList, newreturnList
         return returnList
 
     def updateCommandPriority(
@@ -169,7 +170,8 @@ class Field:
     def eventTrigger(self, eventName: str, **kwargs):
         if not hasattr(NonEventsObj, eventName):
             return
-        for non in self.calculateSpeedOrder(returnNonEntity=True):
+        for non, nonTuple in self.calculateSpeedOrder(returnNonEntity=True):
+            kwargs.update({"org": nonTuple})
             eval("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
 
 

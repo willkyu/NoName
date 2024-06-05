@@ -39,7 +39,7 @@ class NON(object):
     ivs: IVs
     evs: EVs
 
-    statDict: dict[str, int] = {k: 0 for k in statList}
+    statsLevel: StatsLevel
 
     def save(self):
         self.dump2Json()

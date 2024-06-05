@@ -10,6 +10,17 @@ from dataclasses import dataclass
 
 
 @dataclass
+class StatsLevel:
+    ATK: int = 0
+    DEF: int = 0
+    SPA: int = 0
+    SPD: int = 0
+    SPE: int = 0
+    ACC: int = 0
+    EVA: int = 0
+
+
+@dataclass
 class SimpleNON:
     name: str
     masterId: str
@@ -24,7 +35,7 @@ class SimpleNON:
 
     moveSlots: list[Literal["MoveSlot"]]
 
-    statDict: dict[str, int]
+    statsLevel: StatsLevel
 
 
 @dataclass
@@ -61,13 +72,13 @@ class NonEvent:
         pass
 
 
-def nonEventFunExample(field: SimpleField, **kwargs):
+def nonEventFunExample(self: NonEvent, field: SimpleField, **kwargs):
     """一个例子"""
     if field.weather == "Rainy":
-        field.log.append("天气没有任何变化……\n")
+        field.log += "天气没有任何变化……\n"
         return
     field.weather = "Rainy"
-    field.log.append("天气变成了雨天……\n")
+    field.log += "天气变成了雨天……\n"
 
     field.eventTrigger(field, "onWeatherChanged", **kwargs)
     pass

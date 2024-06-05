@@ -27,9 +27,9 @@ moveDataBase: list[MoveData] = [
 ]
 
 moveDataDictEn: dict[str, MoveData] = {
-    movedata.name: movedata for movedata in moveDataBase
+    moveData.name: moveData for moveData in moveDataBase
 }
 
 moveDataDictCn: dict[str, MoveData] = {
-    movedata.cnName: movedata for movedata in moveDataBase
+    moveData.cnName: moveData for moveData in moveDataBase
 }
