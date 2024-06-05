@@ -22,11 +22,22 @@ class RateBuff:
 
 
 @dataclass
+class SpeciesStrength:
+    HP: int = 0
+    ATK: int = 0
+    DEF: int = 0
+    SPA: int = 0
+    SPD: int = 0
+    SPE: int = 0
+
+
+@dataclass
 class SpeciesData:
     name: str
     idex: int
     types: list[str]
     abilities: SpeciesAbilities
+    speciesStrength: SpeciesStrength
 
     """
     出现率相关
@@ -37,9 +48,9 @@ class SpeciesData:
     # 我觉得liveArea在这里可以不写，直接在area那里调用找这里的概率就行
     liveArea: list[str]
 
-    baseRateBuff: int
+    baseRateBuff: int = 5
 
-    rateBuff: RateBuff
+    rateBuff: RateBuff = None
 
     # TODO
     pass

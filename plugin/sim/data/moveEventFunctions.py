@@ -1,4 +1,4 @@
-from sim.ability import *
+from sim.ability import SimpleField
 
 
 def helloworld(self, field: SimpleField, **kwargs):

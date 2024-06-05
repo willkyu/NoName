@@ -12,3 +12,12 @@ abilityDataBase: list[Ability] = [
         ),
     )
 ]
+
+
+abilityDataDictEn: dict[str, Ability] = {
+    abilityData.name: abilityData for abilityData in abilityDataBase
+}
+
+abilityDataDictCn: dict[str, Ability] = {
+    abilityData.cnName: abilityData for abilityData in abilityDataBase
+}

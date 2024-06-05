@@ -1,4 +1,5 @@
 import random
+import json
 
 from sim.globalUtils import *
 from sim.livingArea import Area
@@ -14,18 +15,21 @@ class Player:
 
     def __init__(self, playerId: str) -> None:
         self.id = playerId
+        # print("getting name")
         self.nickname = getNickname(self.id)
+        # print(self.nickname)
         self.path = baseNonFilePath + "{}/".format(self.id)
         if not os.path.exists(self.path + "userConfig.json"):
             createNewConfig(self.id)
-        with open(self.path + "userConfig.json") as f:
-            self.__dict__.update()
+        with open(self.path + "userConfig.json", "r", encoding="utf-8") as f:
+            self.__dict__.update(json.load(f))
         self.coin = readCoin(self.id)
+        # print(self.__dict__)
         pass
 
     def __str__(self) -> str:
         return "————————————\n▼ ID[{}]身份认证成功.\n▼ 以[{}]进行登入.\n┣———————————\n│ 灵魂：{}\n│ DreamCrystal：{}\n————————————".format(
-            self.id, self.coin, self.dreamCrystal
+            self.id, self.nickname, self.coin, self.dreamCrystal
         )
 
     # 玩家获取新的NonBaby

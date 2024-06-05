@@ -5,6 +5,12 @@ from sim.field import Field, getNonEntity
 from sim.player import Player
 
 
+class log(list):
+    def append(self, object: object) -> None:
+        print(str(object))
+        return super().append(object)
+
+
 class Battle:
     groupId: str
     turn: int
@@ -27,7 +33,7 @@ class Battle:
         self.playerDict[playerId] = Player(playerId)
         # self.playerIdList.append(playerId)
         self.battleMode = battleMode
-        self.log = []
+        self.log = log()
         self.playerNum = 4 if self.battleMode == "chaos4" else 2
         self.sendGroup(
             "[{}]发出了对战邀请，当前状态：{}/{}".format(
@@ -49,24 +55,35 @@ class Battle:
             return False
         if not Battle.canAddPlayer(playerId):
             self.sendGroup(
-                "[{}]想要接受对战邀请，但是队伍中已有NON处于对战状态.", log=False
+                "[{}]想要接受对战邀请，但是队伍中已有NON处于对战状态.".format(
+                    self.playerDict[playerId].nickname
+                ),
+                log=False,
             )
             return False
-        self.playerDict[playerId] = getNickname(playerId)
+        self.playerDict[playerId] = Player(playerId)
         if len(self.playerDict) == self.playerNum:
             self.sendGroup(
                 "[{}]接受了对战邀请，当前状态：{}/{}\n即将开始对战...".format(
-                    self.playerDict[playerId], len(self.playerDict), self.playerNum
+                    self.playerDict[playerId].nickname,
+                    len(self.playerDict),
+                    self.playerNum,
                 )
             )
             self.start()
         else:
             self.sendGroup(
                 "[{}]接受了对战邀请，当前状态：{}/{}".format(
-                    self.playerDict[playerId], len(self.playerDict), self.playerNum
+                    self.playerDict[playerId].nickname,
+                    len(self.playerDict),
+                    self.playerNum,
                 )
             )
         return True
+
+    def callForCommands(self):
+        for playerId in self.playerDict.keys():
+            self.sendPrivate(playerId, "请输入指令.")
 
     def start(self):
         self.field = Field(self.playerDict.values(), self.battleMode, self.log)
@@ -86,25 +103,62 @@ class Battle:
                 ),
             )
         startBattleMessage += "————————————"
-        for player in self.playerDict.keys():
-            for non in self.field.sides[player].activeNons:
-                non.inBattle = self.groupId
-                non.save()
-            for non in self.field.sides[player].notActiveNons:
-                non.inBattle = self.groupId
-                non.save()
+        # for player in self.playerDict.keys():
+        #     for non in self.field.sides[player].activeNons:
+        #         non.inBattle = self.groupId
+        #         non.save()
+        #     for non in self.field.sides[player].notActiveNons:
+        #         non.inBattle = self.groupId
+        #         non.save()
+        self.sendGroup(startBattleMessage)
+        self.turn = 0
+        self.callForCommands()
 
     def eachTurn(self):
         self.turn += 1
+        self.sendGroup("===============\nTurn {} Start!\n".format(self.turn))
         commandListThisTurn = self.field.calculateCommandOrder()
         for commandTuple in commandListThisTurn:
+            self.log.append("执行command:\n" + str(commandTuple))
             self.field.exeCommand(*commandTuple)
+
+        # 回合结束处理
+        self.field.eventTriggerAll("endTurnEvent")
+
+        # 检查所有fainted的NON
         pass
 
-    def end(self):
+    def end(self, winnerId: str):
         pass
 
-    pass
+    def addCommand(self, playerId, index, command):
+
+        res = self.field.sides[playerId].addCommand(index, command)
+
+        if isinstance(res, str):
+            self.sendPrivate(playerId, res)
+        if self.getAllCommand():
+            for commandTupele in self.field.calculateCommandOrder():
+                command = self.field.sides[commandTupele[0]].commandDict[
+                    commandTupele[1]
+                ]
+                targetTuple = self.field.getNonTuple(command.target)
+                self.sendGroup(
+                    "· 玩家[{}]的[{}]准备对玩家[{}]的[{}]使用[{}].".format(
+                        commandTupele[0],
+                        self.field.tuple2Non(commandTupele).name,
+                        targetTuple[0],
+                        self.field.tuple2Non(targetTuple).name,
+                        command.move,
+                    )
+                )
+            self.eachTurn()
+
+    def getAllCommand(self) -> bool:
+        for side in self.field.sides.values():
+            if not side.getAllCommand():
+                return False
+        return True
 
     def sendGroup(self, message: str, log=True):
         # 发送群聊消息并记入log
