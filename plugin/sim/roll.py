@@ -2,27 +2,48 @@ import random
 from species import SpeciesData
 import datetime
 from data.speciesData import speciesDataBase
+from data.itemData import itemDataBase
 
 
 # todo 补充补给品类和获取
-def getNonSpecies(self, area: str):
+def gacha(self, area: str):
     # 总权重,用于生成随机数种子
-    buffSum = 0
+    buff_sum = 0
     # 从json文件读取类信息,来获取权重总和等信息
 
     for item in speciesDataBase:
-        buffSum += self.getSpeciesBuffResult(item, area)
+        buff_sum += self.getSpeciesBuffResult(item, area)
     # 生成1-buffSum之间的随机整数,补给品占比为80%
-    suppliesNum = (buffSum * 8) // 10
+    supplies_num = (buff_sum * 8) // 10
     # 轮询权重,用来检测落在哪个范围
-    randomNum = random.randint(1, suppliesNum + buffSum)
+    random_num = random.randint(1, supplies_num + buff_sum)
+    # 如果随机数小于补给品数值，则此次获得物品
+    if random_num <= supplies_num:
+        return __getRandomItemsInstance()
 
-    rateSum = suppliesNum
+    # 如果随机数大于补给品数值，则获得Non
+    rate_sum = supplies_num
     # 看落在哪个区间,则获取对应的种族
     for item in speciesDataBase:
-        rateSum += self.getSpeciesBuffResult(item, area)
-        if rateSum >= randomNum:
-            return item
+        rate_sum += self.getSpeciesBuffResult(item, area)
+        if rate_sum >= random_num:
+            return __getNonInstance(item)
+
+
+def __getNonInstance(species: SpeciesData):
+    # 调用丘丘提供的Non实例方法然后复写其中的随机属性
+    pass
+
+
+def __getRandomItemsInstance():
+    # 物品分稀有度等级，按照稀有度排序，和为1，生成0-1随机浮点看落在哪个区间
+    random_result = random.random()
+
+
+
+    for item in itemDataBase:
+        pass
+    pass
 
 
 # 获取总权重
