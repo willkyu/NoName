@@ -126,7 +126,7 @@ class NON(object):
             return False
 
 
-def initNonFrom(speciesType: str) -> NON:
+def initNonFromSpecies(speciesName: str) -> NON:
     # TODO
     NON(
         name="测试NON",

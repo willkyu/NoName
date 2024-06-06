@@ -82,10 +82,12 @@ class Battle:
         return True
 
     def callForCommands(self):
+        """向所有玩家发送 请输入指令"""
         for playerId in self.playerDict.keys():
             self.sendPrivate(playerId, "请输入指令.")
 
     def start(self):
+        """战斗开始"""
         self.field = Field(self.playerDict.values(), self.battleMode, self.log)
         startBattleMessage = "————————————\n▼ 战斗开始！\n┣———————————\n"
         for playerId in self.playerDict.keys():
@@ -115,8 +117,11 @@ class Battle:
         self.callForCommands()
 
     def eachTurn(self):
+        """每回合的操作"""
         self.turn += 1
-        self.sendGroup("===============\nTurn {} Start!\n".format(self.turn))
+        self.sendGroup(
+            "===============\nTurn {} Start!\n===============".format(self.turn)
+        )
         commandListThisTurn = self.field.calculateCommandOrder()
         for commandTuple in commandListThisTurn:
             self.log.append("执行command:\n" + str(commandTuple))
@@ -125,18 +130,62 @@ class Battle:
         # 回合结束处理
         self.field.eventTriggerAll("endTurnEvent")
 
+        waitSwitchFlag = False
         # 检查所有fainted的NON
+        for playerId, faintedList in self.field.waitSwitchDict.items():
+            if len(faintedList) > 0:
+                self.sendPrivate(playerId, "请输入上场的NON")
+                waitSwitchFlag = True
+
+        if not waitSwitchFlag:
+            self.callForCommands()
         pass
+
+    def waitSwitchAdd(self, playerId: str, orgId: int, nonName: str):
+        """替补上场
+
+        Args:
+            playerId (str): _description_
+            orgId (int): _description_
+            nonName (str): _description_
+        """
+        self.field.exeWaitSwitch(playerId, orgId, nonName)
+        self.field.waitSwitchDict[playerId].remove(orgId)
+        waitSwitchFlag = False
+        for playerId_, faintedList in self.field.waitSwitchDict.items():
+            if len(faintedList) > 0:
+                waitSwitchFlag = True
+                if playerId_ == playerId:
+                    self.sendPrivate(playerId, "请继续输入上场的NON")
+        if waitSwitchFlag:
+            return
+        self.callForCommands()
 
     def end(self, winnerId: str):
+        """battle结束，胜负已分
+
+        Args:
+            winnerId (str): _description_
+        """
         pass
 
-    def addCommand(self, playerId, index, command):
+    def addCommand(self, playerId: str, nonName: str, command):
+        """添加指令
 
+        Args:
+            playerId (str): _description_
+            nonName (str): _description_
+            command (_type_): _description_
+        """
+        index = self.field.getNonTuple(nonName, playerId)[1]
         res = self.field.sides[playerId].addCommand(index, command)
 
         if isinstance(res, str):
             self.sendPrivate(playerId, res)
+
+        # * 这里很重要，之后的command建议都只使用targetTuple来定位target，而不是直接用target
+        command = self.field.sides[playerId].commandDict[index]
+        command.targetTuple = self.field.getNonTuple(command.target)
         if self.getAllCommand():
             for commandTupele in self.field.calculateCommandOrder():
                 command = self.field.sides[commandTupele[0]].commandDict[
@@ -155,6 +204,11 @@ class Battle:
             self.eachTurn()
 
     def getAllCommand(self) -> bool:
+        """检查是否收到所有指令
+
+        Returns:
+            bool: _description_
+        """
         for side in self.field.sides.values():
             if not side.getAllCommand():
                 return False
@@ -176,6 +230,14 @@ class Battle:
 
     @staticmethod
     def canAddPlayer(playerId: str):
+        """检查player是否可以参加这场战斗，比如检查队伍内是否有在battle中的NON
+
+        Args:
+            playerId (str): _description_
+
+        Returns:
+            _type_: _description_
+        """
         for nonName in Player(playerId).team:
             if getNonEntity(playerId, nonName).inBattle != "":
                 return False

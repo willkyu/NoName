@@ -44,20 +44,20 @@ willQ = "496373158"
 battletest = Battle(willQ, "131313", "double", botTest())
 battletest.addPlayer(mopo)
 
-battletest.addCommand(mopo, 0, Command("测试NON", "move", "Tackle"))
-# print("mopo send command0")
-# sleep(1)
+battletest.addCommand(mopo, "测试NON000", Command("测试NON", "move", "Tackle"))
+battletest.addCommand(mopo, "测试NON001", Command("测试NON003", "switch", ""))
+battletest.addCommand(willQ, "测试NON", Command("测试NON001", "move", "Tackle"))
+battletest.addCommand(willQ, "测试NON1", Command("测试NON001", "move", "Tackle"))
 
+battletest.addCommand(mopo, "测试NON000", Command("测试NON", "move", "Tackle"))
+battletest.addCommand(mopo, "测试NON001", Command("测试NON", "move", "Tackle"))
+battletest.addCommand(willQ, "测试NON", Command("测试NON001", "move", "Tackle"))
+battletest.addCommand(willQ, "测试NON1", Command("测试NON001", "move", "Tackle"))
 
-battletest.addCommand(mopo, 1, Command("测试NON1", "move", "Tackle"))
-# print("mopo send command1")
-# sleep(1)
+battletest.waitSwitchAdd(mopo, 1, "测试NON002")
 
-battletest.addCommand(willQ, 0, Command("测试NON000", "move", "Tackle"))
-# print("willq send command0")
-# sleep(1)
-
-battletest.addCommand(willQ, 1, Command("测试NON000", "move", "Tackle"))
-# print("willq send command1")
-# sleep(1)
+battletest.addCommand(mopo, "测试NON000", Command("测试NON", "move", "Tackle"))
+battletest.addCommand(mopo, "测试NON002", Command("测试NON", "move", "Tackle"))
+battletest.addCommand(willQ, "测试NON", Command("测试NON001", "move", "Tackle"))
+battletest.addCommand(willQ, "测试NON1", Command("测试NON001", "move", "Tackle"))
 # battletest.

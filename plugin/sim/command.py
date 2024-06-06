@@ -9,6 +9,7 @@ class Command:
     action: Literal["switch", "retire", "specialEvo", "move", "item"]
     move: str | None
     priority: int = 0
+    targetTuple: tuple[str, int] = None
 
     def __post_init__(self):
         if self.action == "move":
