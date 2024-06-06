@@ -1,3 +1,5 @@
+import random
+
 from sim.ability import SimpleField
 
 
@@ -13,3 +15,10 @@ def helloworld(self, field: SimpleField, **kwargs):
             )
     pass
     # field.
+
+
+def noGlasses(self, field: SimpleField, **kwargs):
+    orgNonTuple = kwargs["org"]
+    field.sides[orgNonTuple[0]].commandList[
+        orgNonTuple[1]
+    ].targetTuple = field.ABC()  # ABC是写的随机获取一个目标的函数
