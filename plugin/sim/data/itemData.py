@@ -1,11 +1,11 @@
-from sim.item import ItemData
+from sim.item import ItemData, Rarity
 
-itemDataBase: list[ItemData] = [
+itemDataWhite: list[ItemData] = [
     ItemData(
         id=1,
         name="Tackle",
         nameCn="撞击",
-        pp=40,
+        rarity=Rarity.WHITE,
         category="Physical",
         type="Normal",
         target="normal",
@@ -28,10 +28,57 @@ itemDataBase: list[ItemData] = [
     ),
 ]
 
-moveDataDictEn: dict[str, ItemData] = {
-    moveData.name: moveData for moveData in itemDataBase
+itemDataBlue: list[ItemData] = [
+    ItemData(
+        id=1,
+        name="Tackle",
+        nameCn="撞击",
+        rarity=Rarity.BLUE,
+        category="Physical",
+        type="Normal",
+        target="normal",
+        basePower=40,
+        accuracy=100,
+        desc="使用全身的力气撞击目标。",
+    )
+]
+
+itemDataPurple: list[ItemData] = [
+    ItemData(
+        id=1,
+        name="Tackle",
+        nameCn="撞击",
+        rarity=Rarity.PURPLE,
+        category="Physical",
+        type="Normal",
+        target="normal",
+        basePower=40,
+        accuracy=100,
+        desc="使用全身的力气撞击目标。",
+    )
+]
+
+itemDataGold: list[ItemData] = [
+    ItemData(
+        id=1,
+        name="Tackle",
+        nameCn="撞击",
+        rarity=Rarity.GOLD,
+        category="Physical",
+        type="Normal",
+        target="normal",
+        basePower=40,
+        accuracy=100,
+        desc="使用全身的力气撞击目标。",
+    )
+]
+
+itemData = itemDataWhite + itemDataBlue + itemDataPurple + itemDataGold
+
+itemDataDictEn: dict[str, ItemData] = {
+    itemData.name: itemData for itemData in itemData
 }
 
-moveDataDictCn: dict[str, ItemData] = {
-    moveData.nameCn: moveData for moveData in itemDataBase
+itemDataDictCn: dict[str, ItemData] = {
+    itemData.nameCn: itemData for itemData in itemData
 }

@@ -2,6 +2,7 @@ import random
 import json
 
 from sim.globalUtils import *
+from sim.item import ItemData
 from sim.livingArea import Area
 
 
@@ -62,3 +63,8 @@ class Player:
             return self.coin > 10
         elif district == Area.DESERT:
             return self.coin > 20
+
+    def updateStatus(self):
+        # 将JSON数据写入文件
+        with open(baseNonFilePath + "{}/".format(self.id), 'w') as file:
+            json.dump(self, file, indent=4)

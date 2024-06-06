@@ -5,6 +5,13 @@ specialEffectClass = Callable | str | None  # 特殊效果，还没想好是函�
 
 
 @dataclass
+class Rarity:
+    WHITE = 0.5
+    BLUE = 0.3
+    PURPLE = 0.15
+    GOLD = 0.05
+
+@dataclass
 class ItemData:
     """招式数据类型，不是具体绑定在NON身上的招式"""
 
@@ -14,7 +21,7 @@ class ItemData:
     nameCn: str
 
     # 稀有度
-    rarity: str
+    rarity: Rarity
     # 使用次数
     pp: int
     # 类型，物理魔法辅助
