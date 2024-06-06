@@ -24,6 +24,8 @@ class Side:
     # 一些其他的东西，如护盾
     shield: bool = False  # 己方全体护盾
 
+    lose = False
+
     def __init__(self, team: list[NON], battleMode: BattleMode) -> None:
         """给玩家的teamlist，战斗规则
 
@@ -72,6 +74,8 @@ class Side:
             moveslot for moveslot in self.activeNons[index].moveSlots.keys()
         ]:
             return "无法使用该NON不会的招式"
+        if self.activeNons[index].hp <= 0:
+            return "该NON已昏厥"
         # 这之后可以再加别的检查合法性，比如不能交换状态进行交换
         return True
 
@@ -87,8 +91,20 @@ class Side:
         Returns:
             bool: _description_
         """
-        if None in self.commandDict.values():
+
+        if None in [
+            self.commandDict[idx]
+            for idx, non in enumerate(self.activeNons)
+            if non.hp > 0
+        ]:
             return False
+        return True
+
+    def checkLose(self):
+        for non in self.activeNons:
+            if non.hp > 0:
+                return False
+        self.lose = True
         return True
 
     pass
@@ -184,6 +200,9 @@ class Field:
     def exeWaitSwitch(self, playerId: str, orgId: int, nonName: str):
         # 执行替补，一般是因为位置空了需要进行备战替补
         # orgId是需要换上的位置index，nonName是换上的NON的name
+
+        if nonName not in [non.name for non in self.sides[playerId].notActiveNons]:
+            return False
         targetNonIndex = self.getNonTuple(nonName, playerId)[1]
         # self.eventTriggerSingle("beforeSwitch", (sideId, commandIndex))
         self.log.append(
@@ -201,16 +220,22 @@ class Field:
             self.sides[playerId].activeNons[orgId],
         )
         self.eventTriggerSingle("onActiveOnce", (playerId, orgId))
+        return True
 
     def exeMove(self, sideId: str, commandIndex: int):
         # 执行move，比较复杂。还没写完
         command: Command = self.sides[sideId].commandDict[commandIndex]
+        if command is None:
+            return
         non = self.tuple2Non((sideId, commandIndex))
         non.moveSlots[command.move].pp -= 1
         targetTuple = command.targetTuple
         targetNon = self.tuple2Non(targetTuple)
         if targetNon.hp <= 0:
             targetTuple = self.getRandomActiveNonTuple(targetTuple[0])
+            if not targetTuple:
+                self.log("没有目标.")
+                return
             targetNon = self.tuple2Non(targetTuple)
         if non.moveSlots[command.move].move.category != "Auxiliary":
             damage = self.calculateDamage(
@@ -253,7 +278,9 @@ class Field:
                 for idx in range(side.nonNum):
                     if self.tuple2Non((sideId, idx), active=True).hp > 0:
                         tupleList.append((sideId, idx))
-        return choice(tupleList)
+        if len(tupleList) > 0:
+            return choice(tupleList)
+        return False
 
     def faintedProcess(self, targetTuple: tuple[str, int]):
         # fainted的处理
@@ -265,6 +292,8 @@ class Field:
         if self.haveNonToSwitch(targetTuple[0]):
             self.waitSwitchDict[targetTuple[0]].append(targetTuple[1])
             self.log.append("{}将要选择NON到位置{}上.".format(*targetTuple))
+        elif self.sides[targetTuple[0]].checkLose():
+            self.log.append("{}没有可以拿出的NON了……")
         pass
 
     def calculateDamage(self, orgNon: NON, move: MoveSlot, targetNon: NON):
@@ -294,13 +323,14 @@ class Field:
 
         for sideId, side in shuffledSideList:
             for commandIndex, command in side.commandDict.items():
-                commandDict[(sideId, commandIndex)] = command
+                if command != None:
+                    commandDict[(sideId, commandIndex)] = command
 
         # calculate the order
         self.updateCommandPriority(commandDict)
         commandPriorityDict = {
             commandTuple: (
-                command.priority,
+                command.priority if command is not None else 0,
                 self.sides[commandTuple[0]].calculateNonSpeed(commandTuple[1]),
             )
             for commandTuple, command in commandDict.items()
@@ -378,9 +408,11 @@ class Field:
         else:
             for nonIdx, non in enumerate(self.sides[sideId].activeNons):
                 if non.name == nonName:
+                    print("active")
                     return (sideId, nonIdx)
             for nonIdx, non in enumerate(self.sides[sideId].notActiveNons):
                 if non.name == nonName:
+                    print("notactive")
                     return (sideId, nonIdx)
             return False
 
@@ -419,6 +451,7 @@ class Field:
         """
         for non in self.sides[sideId].notActiveNons:
             if non.hp > 0:
+                print(non.name)
                 return True
         return False
 

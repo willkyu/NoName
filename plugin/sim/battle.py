@@ -82,9 +82,17 @@ class Battle:
         return True
 
     def callForCommands(self):
-        """向所有玩家发送 请输入指令"""
-        for playerId in self.playerDict.keys():
-            self.sendPrivate(playerId, "请输入指令.")
+        """首先检查是否决出胜负，否则向所有玩家发送 请输入指令"""
+        notLoseSideList = [
+            sideId for sideId, side in self.field.sides.items() if not side.lose
+        ]
+        if len(notLoseSideList) > 1:
+            for playerId in self.playerDict.keys():
+                self.sendPrivate(playerId, "请输入指令.")
+        elif len(notLoseSideList) == 1:
+            self.end(winnerId=notLoseSideList[0])
+        else:
+            self.sendGroup("DRAW! NO WINNER!")
 
     def start(self):
         """战斗开始"""
@@ -149,7 +157,10 @@ class Battle:
             orgId (int): _description_
             nonName (str): _description_
         """
-        self.field.exeWaitSwitch(playerId, orgId, nonName)
+
+        if not self.field.exeWaitSwitch(playerId, orgId, nonName):
+            self.log.append("{}不在你的后备NON中.".format(nonName))
+            return
         self.field.waitSwitchDict[playerId].remove(orgId)
         waitSwitchFlag = False
         for playerId_, faintedList in self.field.waitSwitchDict.items():
@@ -167,6 +178,7 @@ class Battle:
         Args:
             winnerId (str): _description_
         """
+        self.sendGroup("WINNER is {}!".format(winnerId))
         pass
 
     def addCommand(self, playerId: str, nonName: str, command):
@@ -177,11 +189,19 @@ class Battle:
             nonName (str): _description_
             command (_type_): _description_
         """
+
         index = self.field.getNonTuple(nonName, playerId)[1]
+        if self.field.tuple2Non((playerId, index), active=True).name != nonName:
+            self.sendPrivate(
+                playerId, "============\n{}没有active.\n==============".format(nonName)
+            )
+            return
+
         res = self.field.sides[playerId].addCommand(index, command)
 
         if isinstance(res, str):
             self.sendPrivate(playerId, res)
+            return
 
         # * 这里很重要，之后的command建议都只使用targetTuple来定位target，而不是直接用target
         command = self.field.sides[playerId].commandDict[index]
