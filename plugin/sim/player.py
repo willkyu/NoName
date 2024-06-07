@@ -2,7 +2,6 @@ import random
 import json
 
 from .globalUtils import *
-from .data.livingArea import Area
 
 
 class Player:
