@@ -1,7 +1,7 @@
 import random
 from dataclasses import dataclass
 
-from species import SpeciesData
+from .species import SpeciesData
 import datetime
 import json
 

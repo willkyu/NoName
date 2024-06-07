@@ -1,8 +1,9 @@
-from OlivOS.API import Event
+import OlivOS
 
-from sim.globalUtils import *
-from sim.field import Field, getNonEntity
-from sim.player import Player
+from .globalUtils import *
+from .field import Field, getNonEntity
+from .player import Player
+from .command import Command
 
 
 class log(list):
@@ -20,20 +21,27 @@ class Battle:
     battleMode: BattleMode
     log: list[str]
     playerNum: int
-    bot: Event  # bot messager
+    bot: OlivOS.API.Event  # bot messager
+    nonNameList: list[str]
+    ready4commands: bool = False
+    finished: bool = False  # For test
 
     def __init__(
-        self, playerId: str, groupId: str, battleMode: BattleMode, bot: Event
+        self, playerId: str, groupId: str, battleMode: BattleMode, bot: OlivOS.API.Event
     ) -> None:
         """注意，当你实例化Battle的时候，说明你已经检查过groupId下没有其他的Battle实例."""
         self.groupId = groupId
+        self.nonNameList = []
         self.bot = bot
+        self.ready4commands = False
         self.playerDict = {}
+        self.finished = False
         self.promoterId = playerId
         self.playerDict[playerId] = Player(playerId)
+        self.nonNameList += self.playerDict[playerId].team
         # self.playerIdList.append(playerId)
         self.battleMode = battleMode
-        self.log = log()
+        self.log = []
         self.playerNum = 4 if self.battleMode == "chaos4" else 2
         self.sendGroup(
             "[{}]发出了对战邀请，当前状态：{}/{}".format(
@@ -53,15 +61,17 @@ class Battle:
         """
         if len(self.playerDict) >= self.playerNum:
             return False
-        if not Battle.canAddPlayer(playerId):
+        canAdd = self.canAddPlayer(playerId)
+        if isinstance(canAdd, str):
             self.sendGroup(
-                "[{}]想要接受对战邀请，但是队伍中已有NON处于对战状态.".format(
-                    self.playerDict[playerId].nickname
+                "[{}]想要接受对战邀请，但是{}.".format(
+                    Player(playerId).nickname, canAdd
                 ),
                 log=False,
             )
             return False
         self.playerDict[playerId] = Player(playerId)
+        self.nonNameList += self.playerDict[playerId].team
         if len(self.playerDict) == self.playerNum:
             self.sendGroup(
                 "[{}]接受了对战邀请，当前状态：{}/{}\n即将开始对战...".format(
@@ -71,6 +81,11 @@ class Battle:
                 )
             )
             self.start()
+            parserPattern = {
+                "action": ["switch", "retire", "specialEvo", "move", "item"],
+                "nonName": self.nonNameList,
+            }
+            return parserPattern
         else:
             self.sendGroup(
                 "[{}]接受了对战邀请，当前状态：{}/{}".format(
@@ -89,6 +104,7 @@ class Battle:
         if len(notLoseSideList) > 1:
             for playerId in self.playerDict.keys():
                 self.sendPrivate(playerId, "请输入指令.")
+            self.ready4commands = True
         elif len(notLoseSideList) == 1:
             self.end(winnerId=notLoseSideList[0])
         else:
@@ -121,6 +137,9 @@ class Battle:
         #         non.inBattle = self.groupId
         #         non.save()
         self.sendGroup(startBattleMessage)
+        self.field.eventTriggerAll("onActiveOnce")
+        self.sendGroup("\n".join(self.log))
+        self.log.clear()
         self.turn = 0
         self.callForCommands()
 
@@ -132,11 +151,18 @@ class Battle:
         )
         commandListThisTurn = self.field.calculateCommandOrder()
         for commandTuple in commandListThisTurn:
-            self.log.append("执行command:\n" + str(commandTuple))
+            # self.log.append("执行command:\n" + str(commandTuple))
             self.field.exeCommand(*commandTuple)
 
         # 回合结束处理
         self.field.eventTriggerAll("endTurnEvent")
+
+        # print(self.log)
+        self.log.append(
+            "===============\nTurn {} End!\n===============".format(self.turn)
+        )
+        self.sendGroup("\n".join(self.log))
+        self.log.clear()
 
         waitSwitchFlag = False
         # 检查所有fainted的NON
@@ -144,6 +170,7 @@ class Battle:
             if len(faintedList) > 0:
                 self.sendPrivate(playerId, "请输入上场的NON")
                 waitSwitchFlag = True
+                self.ready4commands = False
 
         if not waitSwitchFlag:
             self.callForCommands()
@@ -178,10 +205,11 @@ class Battle:
         Args:
             winnerId (str): _description_
         """
+        self.finished = True
         self.sendGroup("WINNER is {}!".format(winnerId))
         pass
 
-    def addCommand(self, playerId: str, nonName: str, command):
+    def addCommand(self, playerId: str, nonName: str, command: Command):
         """添加指令
 
         Args:
@@ -189,7 +217,21 @@ class Battle:
             nonName (str): _description_
             command (_type_): _description_
         """
-
+        if not self.callForCommands:
+            self.sendPrivate(playerId, "还没有到输入指令的时间.")
+            return
+        if nonName not in self.nonNameList:
+            self.sendPrivate(
+                playerId,
+                "============\n该战斗中{}不存在.\n==============".format(nonName),
+            )
+            return
+        if command.action not in ["switch", "retire", "specialEvo", "move", "item"]:
+            self.sendPrivate(
+                playerId,
+                "============\n非法指令.\n==============".format(nonName),
+            )
+            return
         index = self.field.getNonTuple(nonName, playerId)[1]
         if self.field.tuple2Non((playerId, index), active=True).name != nonName:
             self.sendPrivate(
@@ -207,20 +249,20 @@ class Battle:
         command = self.field.sides[playerId].commandDict[index]
         command.targetTuple = self.field.getNonTuple(command.target)
         if self.getAllCommand():
-            for commandTupele in self.field.calculateCommandOrder():
-                command = self.field.sides[commandTupele[0]].commandDict[
-                    commandTupele[1]
-                ]
-                targetTuple = self.field.getNonTuple(command.target)
-                self.sendGroup(
-                    "· 玩家[{}]的[{}]准备对玩家[{}]的[{}]使用[{}].".format(
-                        commandTupele[0],
-                        self.field.tuple2Non(commandTupele).name,
-                        targetTuple[0],
-                        self.field.tuple2Non(targetTuple).name,
-                        command.move,
-                    )
-                )
+            # for commandTupele in self.field.calculateCommandOrder():
+            #     command = self.field.sides[commandTupele[0]].commandDict[
+            #         commandTupele[1]
+            #     ]
+            #     targetTuple = self.field.getNonTuple(command.target)
+            #     self.sendGroup(
+            #         "· 玩家[{}]的[{}]准备对玩家[{}]的[{}]使用[{}].".format(
+            #             commandTupele[0],
+            #             self.field.tuple2Non(commandTupele).name,
+            #             targetTuple[0],
+            #             self.field.tuple2Non(targetTuple).name,
+            #             command.move,
+            #         )
+            #     )
             self.eachTurn()
 
     def getAllCommand(self) -> bool:
@@ -234,7 +276,7 @@ class Battle:
                 return False
         return True
 
-    def sendGroup(self, message: str, log=True):
+    def sendGroup(self, message: str, log=False):
         # 发送群聊消息并记入log
         if not isinstance(message, str):
             return
@@ -242,14 +284,13 @@ class Battle:
             self.log.append(message)
         self.bot.send("group", self.groupId, message)
 
-    def sendPrivate(self, playId: str, message: str):
+    def sendPrivate(self, playerId: str, message: str):
         # 发送私聊消息，不记入log
         if not isinstance(message, str):
             return
-        self.bot.send("private", playId, message)
+        self.bot.send("private", playerId, message)
 
-    @staticmethod
-    def canAddPlayer(playerId: str):
+    def canAddPlayer(self, playerId: str):
         """检查player是否可以参加这场战斗，比如检查队伍内是否有在battle中的NON
 
         Args:
@@ -258,7 +299,11 @@ class Battle:
         Returns:
             _type_: _description_
         """
-        for nonName in Player(playerId).team:
+        player = Player(playerId)
+        for nonName in player.team:
             if getNonEntity(playerId, nonName).inBattle != "":
-                return False
+                return "队伍中已有NON处于对战状态"
+        for nonName in player.team:
+            if nonName in self.nonNameList:
+                return "{}与战斗中已有NON重名".format(nonName)
         return True

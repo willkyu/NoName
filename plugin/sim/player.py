@@ -1,8 +1,8 @@
 import random
 import json
 
-from sim.globalUtils import *
-from sim.livingArea import Area
+from .globalUtils import *
+from .livingArea import Area
 
 
 class Player:
@@ -19,6 +19,7 @@ class Player:
         self.nickname = getNickname(self.id)
         # print(self.nickname)
         self.path = baseNonFilePath + "{}/".format(self.id)
+        makeSureDir(self.path)
         if not os.path.exists(self.path + "userConfig.json"):
             createNewConfig(self.id)
         with open(self.path + "userConfig.json", "r", encoding="utf-8") as f:

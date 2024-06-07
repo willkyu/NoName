@@ -1,5 +1,5 @@
-from sim.globalUtils import *
-from sim.ability import Ability, SpeciesAbilities
+from .globalUtils import *
+from .ability import Ability, SpeciesAbilities
 
 
 @dataclass
@@ -35,7 +35,7 @@ class SpeciesStrength:
 class SpeciesData:
     name: str
     idex: int
-    types: list[str]
+    types: list[Type]
     abilities: SpeciesAbilities
     speciesStrength: SpeciesStrength
 

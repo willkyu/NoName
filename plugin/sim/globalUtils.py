@@ -7,12 +7,12 @@ import os
 import requests
 
 
-from sim.data.moveData import *
+from .data.moveData import *
 
 BattleMode = Literal["single", "double", "chaos4"]
+battleMode = ["single", "double", "chaos4"]
 
 baseNonFilePath = "./plugin/data/NoName/data/"
-baseNonFilePath = "./"
 
 
 @dataclass
@@ -25,6 +25,8 @@ def makeSureDir(path: str) -> None:
     if not os.path.exists(path):
         os.mkdir(path)
 
+
+makeSureDir(baseNonFilePath)
 
 conf = ConfigParser()
 
@@ -95,6 +97,7 @@ EvRange = Annotated[int, Range(0, 252)]
 statsLevelRange = Annotated[int, Range(-6, 6)]
 
 statList = ["HP", "ATK", "DEF", "SPA", "SPD", "SPE"]
+Type = str
 
 
 @dataclass

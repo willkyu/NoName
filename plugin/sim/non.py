@@ -1,11 +1,12 @@
 import math
 
-from sim.globalUtils import *
-from sim.species import SpeciesData
-from sim.ability import Ability
-from sim.data.abilityData import abilityDataDictEn
-from sim.nonEvents import NonEventsObj
-from sim.data.speciesData import speciesDataDictEn
+from .globalUtils import *
+from .species import SpeciesData
+from .ability import Ability
+from .condition import Condition
+from .data.abilityData import abilityDataDictEn
+from .nonEvents import NonEventsObj
+from .data.speciesData import speciesDataDictEn
 
 
 @dataclass
@@ -50,6 +51,8 @@ class NON(object):
     ivs: IVs
     evs: EVs
 
+    types: list[Type] = None
+    conditions: dict[str, Condition] = None
     stat: StatValue = None
     hp: int = 0
     hpmax: int = 0
@@ -59,12 +62,14 @@ class NON(object):
     statsLevel: StatLevel = None
 
     def __post_init__(self):
-        self.statsLevel = StatLevel()
-        self.nonEvents = NonEventsObj()
-        self.battleStatus = NonTempBattleStatus()
+
         self.toEntity()  # only test
         if self.stat == None:
             self.calculateStat()
+
+    def hookNonEvents(self):
+        for att in self.ability.addNonEvents.__dict__.keys():
+            exec("self.nonEvents.{}+=self.ability.addNonEvents.{}".format(att, att))
 
     def calculateStat(self):
         HP: int
@@ -98,22 +103,33 @@ class NON(object):
         self.toEntity()
 
     def toEntity(self):
+        self.statsLevel = StatLevel()
+        self.nonEvents = NonEventsObj()
+        self.battleStatus = NonTempBattleStatus()
+        self.conditions = {}
         self.ivs = IVs(**self.ivs)
         self.evs = EVs(**self.evs)
-        if self.stat is not None:
-            self.stat = StatValue(**self.stat)
-        for k in self.moveSlots.keys():
-            self.moveSlots[k] = MoveSlot(k)
         self.species = speciesDataDictEn[self.species]
         self.ability = abilityDataDictEn[self.ability]
+        if self.stat is not None:
+            self.stat = StatValue(**self.stat)
+        if self.types is None:
+            self.types = self.species.types
+        for k in self.moveSlots.keys():
+            self.moveSlots[k] = MoveSlot(k)
+        self.hookNonEvents()
 
     def toStr(self):
         self.ivs = self.ivs.__dict__
         self.evs = self.evs.__dict__
         for k in self.moveSlots.keys():
             self.moveSlots[k] = {"name": k}
+        self.statsLevel = None
         self.species = self.species.name
         self.ability = self.ability.name
+        self.nonEvents = None
+        self.battleStatus = None
+        self.conditions = None
 
     def loadFromJson(self, masterId: str, nonName: str):
         # 可能用不上，直接在外部定义一个从json读类的就可以

@@ -5,7 +5,7 @@ from .nonEvents import *
 
 
 @dataclass
-class Ability:
+class Condition:
     name: str
     cnName: str
     desc: str
@@ -19,10 +19,3 @@ class Ability:
 
     def __str__(self) -> str:
         return self.cnName
-
-
-@dataclass
-class SpeciesAbilities:
-    A1: str  # ability 1
-    A2: str  # ability 2
-    H: str  # hidden ability
