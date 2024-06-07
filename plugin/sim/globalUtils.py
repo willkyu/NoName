@@ -99,6 +99,10 @@ statsLevelRange = Annotated[int, Range(-6, 6)]
 statList = ["HP", "ATK", "DEF", "SPA", "SPD", "SPE"]
 Type = str
 
+# 隐藏特性开启flag-活动事件
+hiddenAbilityAvailable = False
+
+
 
 @dataclass
 class IVs:

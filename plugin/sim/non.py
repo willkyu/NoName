@@ -142,9 +142,9 @@ class NON(object):
             return False
 
 
-def initNonFromSpecies(speciesName: str) -> NON:
+def initNonFromSpecies(speciesName: SpeciesData) -> NON:
     # TODO
-    NON(
+    return NON(
         name="测试NON",
         masterId="496373158",
         species="NillKyu",
@@ -155,4 +155,11 @@ def initNonFromSpecies(speciesName: str) -> NON:
         moveSlots={"Tackle": {"name": "Tackle"}},
         ivs=IVs().__dict__,
         evs=EVs().__dict__,
+    )
+
+
+def initMoveSlot(moveData: MoveData) -> MoveSlot:
+    # TODO
+    return MoveSlot(
+        name="测试NON"
     )
