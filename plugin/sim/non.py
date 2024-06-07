@@ -63,7 +63,7 @@ class NON(object):
 
     def __post_init__(self):
 
-        self.toEntity()  # only test
+        self.toEntity()
         if self.stat == None:
             self.calculateStat()
 
@@ -93,12 +93,15 @@ class NON(object):
     def dump2Json(self, test=False):
         if not test:
             self.toStr()
-        path = baseNonFilePath + "{}/NON/".format(self.masterId)
+        path = baseNonFilePath + "{}/NON/{}.json".format(self.masterId, self.name)
+        if self.name == "":
+            path = baseNonFilePath + "{}/TEMP.json".format(self.masterId)
         if test:
             path = "./"
+
         makeSureDir(path)
         # print(os.path.abspath(path))
-        with open(path + "{}.json".format(self.name), "w+", encoding="utf-8") as f:
+        with open(path, "w+", encoding="utf-8") as f:
             dump(self, f, default=lambda obj: obj.__dict__, ensure_ascii=False)
         self.toEntity()
 
@@ -135,24 +138,35 @@ class NON(object):
         # 可能用不上，直接在外部定义一个从json读类的就可以
         path = baseNonFilePath + "{}/NON/{}.json".format(masterId, nonName)
         if os.path.exists(path):
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 self.__dict__.update(load(f))
             return True
         else:
             return False
 
 
-def initNonFromSpecies(speciesName: SpeciesData) -> NON:
+def initNonFromSpecies(species: SpeciesData) -> NON:
+    """调用完该方法请让玩家取名！默认名字为空字符串""
+        此外masterId也需要绑定
+
+    Args:
+        species (SpeciesData): _description_
+
+    Returns:
+        NON: _description_
+    """
     # TODO
+    import random
+
     return NON(
-        name="测试NON",
-        masterId="496373158",
-        species="NillKyu",
+        name="",
+        masterId="",
+        species=species.name,
         level=5,
         gender="N",
         inBattle="",
         ability="Hello World",
-        moveSlots={"Tackle": {"name": "Tackle"}},
+        moveSlots={},
         ivs=IVs().__dict__,
         evs=EVs().__dict__,
     )
@@ -160,6 +174,4 @@ def initNonFromSpecies(speciesName: SpeciesData) -> NON:
 
 def initMoveSlot(moveData: MoveData) -> MoveSlot:
     # TODO
-    return MoveSlot(
-        name="测试NON"
-    )
+    return MoveSlot(name="测试NON")

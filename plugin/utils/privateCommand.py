@@ -9,7 +9,6 @@ def unityPrivateReply(
     plugin_event: OlivOS.API.Event,
     config: Config,
     botSend: OlivOS.API.Event,
-    parserPatterns: dict[str, dict[str, list[str]]],
     groupBattleDict: dict[str, Battle],
 ):
     userId: str = plugin_event.data.user_id

@@ -69,7 +69,7 @@ def createNewConfig(playerId: str):
     }
     makeSureDir(newdict["path"])
     with open(newdict["path"] + "userConfig.json", "w+", encoding="utf-8") as f:
-        dump(newdict, f)
+        dump(newdict, f, ensure_ascii=False)
 
 
 def getNickname(qqId: str) -> str:
@@ -101,7 +101,6 @@ Type = str
 
 # 隐藏特性开启flag-活动事件
 hiddenAbilityAvailable = False
-
 
 
 @dataclass

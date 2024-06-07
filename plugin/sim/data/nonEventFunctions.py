@@ -1,3 +1,5 @@
+"""异常状态、特性、物品效果函数均写在这里"""
+
 from __future__ import annotations
 import math
 from typing import TYPE_CHECKING

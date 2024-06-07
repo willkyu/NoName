@@ -13,7 +13,6 @@ botHash = "19e44f7870aaaa4d2cb384c92482ab79"
 pluginName = "NoN"
 botSend = None
 
-parserPatterns: dict[str, dict[str, list[str]]] = {}
 groupBattleDict: dict[str, Battle] = {}
 
 
@@ -42,15 +41,11 @@ class Event(object):
     def private_message(plugin_event, Proc):
         global botSend
         global groupBattleDict
-        global parserPattern
-        unityPrivateReply(
-            plugin_event, config, botSend, parserPatterns, groupBattleDict
-        )
+        unityPrivateReply(plugin_event, config, botSend, groupBattleDict)
         pass
 
     def group_message(plugin_event, Proc):
         global botSend
         global groupBattleDict
-        global parserPattern
-        unityGroupReply(plugin_event, config, botSend, parserPatterns, groupBattleDict)
+        unityGroupReply(plugin_event, config, botSend, groupBattleDict)
         pass

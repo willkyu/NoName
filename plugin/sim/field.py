@@ -371,26 +371,25 @@ class Field:
 
     def calculateCommandOrder(self):
         # 计算指令的顺序，同优先级下速度快的优先
-        commandDict: dict[tuple[str, int], Command] = {}
+        # commandDict: dict[tuple[str, int], Command] = {}
+        commandList: list[list[str, int], Command] = []
 
         # 使用shuffle打乱顺序，实现相同速度下的随机排序
-        # * 这样做不太对，需要重写
-        shuffledSideList = list(self.sides.items())
-        shuffle(shuffledSideList)
 
-        for sideId, side in shuffledSideList:
+        for sideId, side in self.sides.items():
             for commandIndex, command in side.commandDict.items():
                 if command != None:
-                    commandDict[(sideId, commandIndex)] = command
+                    commandList.append([[sideId, commandIndex], command])
+        shuffle(commandList)
 
         # calculate the order
-        self.updateCommandPriority(commandDict)
+        self.updateCommandPriority(commandList)
         commandPriorityDict = {
-            commandTuple: (
+            tuple(commandTuple): (
                 command.priority if command is not None else 0,
                 self.sides[commandTuple[0]].calculateNonSpeed(commandTuple[1]),
             )
-            for commandTuple, command in commandDict.items()
+            for commandTuple, command in commandList
         }
 
         return [
@@ -402,29 +401,27 @@ class Field:
 
     def calculateSpeedOrder(self, returnNonEntity=False):
         # 计算指令的速度
-        nonSpeedDict: dict[tuple[str, int], NON] = {}
+        nonSpeedList: list[list[list[str, int], NON]] = []
 
-        # 使用shuffle打乱顺序，实现相同速度下的随机排序，需要重写
+        # 使用shuffle打乱顺序，实现相同速度下的随机排序
 
-        shuffledSideList = list(self.sides.items())
-        shuffle(shuffledSideList)
-
-        for sideId, side in shuffledSideList:
+        for sideId, side in self.sides.items():
             for nonIdx in range(len(side.activeNons)):
                 if self.tuple2Non((sideId, nonIdx)).hp > 0:
-                    nonSpeedDict[(sideId, nonIdx)] = side.calculateNonSpeed(nonIdx)
+                    nonSpeedList.append(
+                        [[sideId, nonIdx], side.calculateNonSpeed(nonIdx)]
+                    )
+        shuffle(nonSpeedList)
 
         returnList = [
-            key for key in sorted(nonSpeedDict.keys(), key=lambda x: (-nonSpeedDict[x]))
+            tuple(key[0]) for key in sorted(nonSpeedList, key=lambda x: (-x[1]))
         ]
         if returnNonEntity:
             newreturnList = [self.tuple2Non(nonTuple) for nonTuple in returnList]
             return [[returnList[i], newreturnList[i]] for i in range(len(returnList))]
         return returnList
 
-    def updateCommandPriority(
-        self, commandDict: dict[tuple[str, int], Command]
-    ) -> None:
+    def updateCommandPriority(self, commandList: list[list[str, int], Command]) -> None:
         # 特殊情况下的优先级更新，比如追击
         pass
 

@@ -8,7 +8,6 @@ def unityGroupReply(
     plugin_event: OlivOS.API.Event,
     config: Config,
     botSend: OlivOS.API.Event,
-    parserPatterns: dict[str, dict[str, list[str]]],
     groupBattleDict: dict[str, Battle],
 ):
     userId: str = plugin_event.data.user_id
@@ -19,6 +18,10 @@ def unityGroupReply(
 
     if not message.lower().startswith(".non"):
         return
+
+    if userId not in [data["id"] for data in plugin_event.get_friend_list()["data"]]:
+        botSend.send("group", groupId, "请先添加为好友^^")
+
     groupCommand = message.lstrip(".non").strip().split(" ")
     match groupCommand[0]:
         case "开始战斗":
