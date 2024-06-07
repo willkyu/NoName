@@ -2,7 +2,7 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING
 
-from sim.ability import *
+from ..ability import *
 
 # if TYPE_CHECKING:
 #     from sim.field import

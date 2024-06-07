@@ -1,6 +1,8 @@
 from random import shuffle, choice
 import math
 
+# import OlivOS
+
 from .globalUtils import *
 from .non import NON, MoveSlot
 from .command import Command
@@ -123,6 +125,7 @@ class Field:
     waitSwitchDict: dict[str, list[int]] = (
         None  # 用于存储是否需要等待用户换上NON，一般用于NON fainted之后，有些特殊技能也会用上
     )
+    botSendGroup: Callable
 
     weather: str = "Normal"
 
@@ -136,6 +139,7 @@ class Field:
         playerList: Annotated[list[Player], "len should be 2 or 4"],
         battleMode: BattleMode,
         log: list[str],
+        botSendGroup: Callable,
     ) -> None:
         """初始化field
 
@@ -153,6 +157,7 @@ class Field:
             for player in playerList
         }
         self.log = log
+        self.botSendGroup = botSendGroup
 
         self.waitSwitchDict = {playerId: [] for playerId in self.sides.keys()}
         pass
@@ -210,7 +215,7 @@ class Field:
             return False
         targetNonIndex = self.getNonTuple(nonName, playerId)[1]
         # self.eventTriggerSingle("beforeSwitch", (sideId, commandIndex))
-        self.log.append(
+        self.botSendGroup(
             "{}派出了{}到位置{}.".format(
                 playerId,
                 self.sides[playerId].notActiveNons[targetNonIndex].name,
@@ -429,7 +434,7 @@ class Field:
             return
         for nonTuple, non in self.calculateSpeedOrder(returnNonEntity=True):
             kwargs.update({"org": nonTuple})
-            eval("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
+            exec("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
 
     def eventTriggerSingle(self, eventName: str, nonTuple: tuple[str, int], **kwargs):
         # 触发指定NON的名为eventName的nonEvent
@@ -437,7 +442,7 @@ class Field:
             return
         non = self.tuple2Non(nonTuple)
         kwargs.update({"org": nonTuple})
-        eval("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
+        exec("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
 
     def getNonTuple(self, nonName: str, sideId: str = None):
         """给定一个non的名字，获取他的tuple。tuple可以理解为是该non的定位符。

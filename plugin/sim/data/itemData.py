@@ -1,4 +1,4 @@
-from sim.item import ItemData, Rarity
+from ..item import ItemData, Rarity
 
 itemDataWhite: list[ItemData] = [
     ItemData(
@@ -75,9 +75,7 @@ itemDataGold: list[ItemData] = [
 
 itemData = itemDataWhite + itemDataBlue + itemDataPurple + itemDataGold
 
-itemDataDictEn: dict[str, ItemData] = {
-    itemData.name: itemData for itemData in itemData
-}
+itemDataDictEn: dict[str, ItemData] = {itemData.name: itemData for itemData in itemData}
 
 itemDataDictCn: dict[str, ItemData] = {
     itemData.nameCn: itemData for itemData in itemData

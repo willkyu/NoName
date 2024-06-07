@@ -15,12 +15,14 @@ def unityGroupReply(
     groupId: str = plugin_event.data.group_id
     message: str = unescape(plugin_event.data.message)
 
+    message = "." + message[1:] if message.startswith("。") else message
+
     if not message.lower().startswith(".non"):
         return
     groupCommand = message.lstrip(".non").strip().split(" ")
     match groupCommand[0]:
         case "开始战斗":
-            if len(groupCommand) < 2:
+            if len(groupCommand) < 2 and groupBattleDict.get(groupId, None) is None:
                 botSend.send(
                     "group", groupId, "请选择战斗规则，可选项有:{}".format(battleMode)
                 )

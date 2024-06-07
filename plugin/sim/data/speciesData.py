@@ -1,5 +1,5 @@
-from sim.species import *
-from sim.data.abilityData import abilityDataDictEn
+from ..species import *
+from .abilityData import abilityDataDictEn
 
 normalRateBuff = RateBuff(*[5 for i in range(8)])
 

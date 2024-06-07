@@ -1,4 +1,4 @@
-from sim.move import MoveData
+from ..move import MoveData
 
 moveDataBase: list[MoveData] = [
     MoveData(

@@ -1,5 +1,5 @@
-from sim.condition import *
-from sim.data.nonEventFunctions import *
+from ..condition import *
+from .nonEventFunctions import *
 
 # baseCondition = []
 

@@ -1,5 +1,5 @@
-from sim.ability import *
-from sim.data.nonEventFunctions import *
+from ..ability import *
+from .nonEventFunctions import *
 
 abilityDataBase: list[Ability] = [
     Ability(
