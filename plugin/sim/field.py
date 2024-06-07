@@ -1,11 +1,13 @@
 from random import shuffle, choice
 import math
 
-from sim.globalUtils import *
-from sim.non import NON, MoveSlot
-from sim.command import Command
-from sim.player import Player
-from sim.nonEvents import NonEventsObj
+# import OlivOS
+
+from .globalUtils import *
+from .non import NON, MoveSlot
+from .command import Command
+from .player import Player
+from .nonEvents import NonEventsObj
 
 
 class Side:
@@ -57,7 +59,7 @@ class Side:
 
         pass
         self.commandDict[index] = command
-        print("{}已添加:\n{}\n".format(index, command))
+        # print("{}已添加:\n{}\n".format(index, command))
         return True
 
     def checkCommandValid(self, index: int, command: Command) -> str | bool:
@@ -123,6 +125,7 @@ class Field:
     waitSwitchDict: dict[str, list[int]] = (
         None  # 用于存储是否需要等待用户换上NON，一般用于NON fainted之后，有些特殊技能也会用上
     )
+    botSendGroup: Callable
 
     weather: str = "Normal"
 
@@ -136,6 +139,7 @@ class Field:
         playerList: Annotated[list[Player], "len should be 2 or 4"],
         battleMode: BattleMode,
         log: list[str],
+        botSendGroup: Callable,
     ) -> None:
         """初始化field
 
@@ -153,9 +157,9 @@ class Field:
             for player in playerList
         }
         self.log = log
+        self.botSendGroup = botSendGroup
 
         self.waitSwitchDict = {playerId: [] for playerId in self.sides.keys()}
-
         pass
 
     def exeCommand(self, sideId: str, commandIndex: int):
@@ -163,6 +167,11 @@ class Field:
         # * 执行指令，sideId与playerId是一个东西
         # do this command
         command: Command = self.sides[sideId].commandDict[commandIndex]
+
+        if self.tuple2Non((sideId, commandIndex)).hp <= 0:
+            self.sides[sideId].commandDict[commandIndex] = None
+            return
+
         match command.action:
             case "retire":
                 # sideId输
@@ -194,8 +203,9 @@ class Field:
             case "move":
                 self.exeMove(sideId, commandIndex)
                 pass
-
+        self.sides[sideId].commandDict[commandIndex] = None
         pass
+        # print(self.log)
 
     def exeWaitSwitch(self, playerId: str, orgId: int, nonName: str):
         # 执行替补，一般是因为位置空了需要进行备战替补
@@ -205,7 +215,7 @@ class Field:
             return False
         targetNonIndex = self.getNonTuple(nonName, playerId)[1]
         # self.eventTriggerSingle("beforeSwitch", (sideId, commandIndex))
-        self.log.append(
+        self.botSendGroup(
             "{}派出了{}到位置{}.".format(
                 playerId,
                 self.sides[playerId].notActiveNons[targetNonIndex].name,
@@ -234,7 +244,7 @@ class Field:
         if targetNon.hp <= 0:
             targetTuple = self.getRandomActiveNonTuple(targetTuple[0])
             if not targetTuple:
-                self.log("没有目标.")
+                self.log.append("没有目标.")
                 return
             targetNon = self.tuple2Non(targetTuple)
         if non.moveSlots[command.move].move.category != "Auxiliary":
@@ -243,20 +253,40 @@ class Field:
                 non.moveSlots[command.move],
                 targetNon,
             )
+            # self.log.append(
+            #     "{}被{}使用{}攻击，受到了{}点伤害，还剩{}HP.".format(
+            #         targetNon.name,
+            #         non.name,
+            #         command.move,
+            #         damage,
+            #         targetNon.hp - damage,
+            #     )
+            # )
             self.log.append(
-                "{}受到了{}点伤害，还剩{}HP.".format(
-                    targetNon.name, damage, targetNon.hp - damage
+                "{}--[{}]-->{}[HP:{}-{}={}/{}]".format(
+                    non.name,
+                    command.move,
+                    targetNon.name,
+                    targetNon.hp,
+                    damage,
+                    max(targetNon.hp - damage, 0),
+                    targetNon.hpmax,
                 )
             )
-            targetNon.hp -= damage
-            if targetNon.hp <= 0:
-                self.faintedProcess(targetTuple)
+            self.makeDamage(targetTuple, damage)
         else:
             # 辅助招式
             pass
 
-        self.sides[sideId].commandDict[commandIndex] = None
         pass
+
+    def makeDamage(self, nonTuple: tuple[str, int], damage: int):
+        nonEntity = self.tuple2Non(nonTuple)
+        if nonEntity.hp <= 0:
+            return
+        nonEntity.hp -= min(damage, nonEntity.hp)
+        if nonEntity.hp <= 0:
+            self.faintedProcess(nonTuple)
 
     def getRandomActiveNonTuple(self, sideId=None):
         """获取一个随机的active的NON，不给sideId就从全局active的NON中选。
@@ -293,19 +323,46 @@ class Field:
             self.waitSwitchDict[targetTuple[0]].append(targetTuple[1])
             self.log.append("{}将要选择NON到位置{}上.".format(*targetTuple))
         elif self.sides[targetTuple[0]].checkLose():
-            self.log.append("{}没有可以拿出的NON了……")
+            self.log.append("{}没有可以拿出的NON了……".format(targetTuple[0]))
         pass
 
     def calculateDamage(self, orgNon: NON, move: MoveSlot, targetNon: NON):
         # 计算伤害，orgNon是攻击方
-        multiply = 1.0
+        multiply = 1.0 * (1.5 if move.move.type in orgNon.types else 1.0)
         category = move.move.category
         # TODO 计算属性克制倍率
         damage = multiply * (
             (2 * orgNon.level + 10)
             / 250
-            * (orgNon.stat.ATK if category == "Physical" else orgNon.stat.SPA)
-            / (targetNon.stat.DEF if category == "Physical" else targetNon.stat.SPD)
+            * (
+                orgNon.stat.ATK
+                * (
+                    (2 + orgNon.statsLevel.ATK) / 2
+                    if orgNon.statsLevel.ATK > 0
+                    else 2 / (2 - orgNon.statsLevel.ATK)
+                )
+                if category == "Physical"
+                else (
+                    orgNon.stat.SPA * (2 + orgNon.statsLevel.SPA) / 2
+                    if orgNon.statsLevel.SPA > 0
+                    else 2 / (2 - orgNon.statsLevel.SPA)
+                )
+            )
+            / (
+                targetNon.stat.DEF
+                * (
+                    (2 + orgNon.statsLevel.DEF) / 2
+                    if orgNon.statsLevel.DEF > 0
+                    else 2 / (2 - orgNon.statsLevel.DEF)
+                )
+                if category == "Physical"
+                else targetNon.stat.SPD
+                * (
+                    (2 + orgNon.statsLevel.SPD) / 2
+                    if orgNon.statsLevel.SPD > 0
+                    else 2 / (2 - orgNon.statsLevel.SPD)
+                )
+            )
             * move.move.basePower
             + 2
         )
@@ -314,26 +371,25 @@ class Field:
 
     def calculateCommandOrder(self):
         # 计算指令的顺序，同优先级下速度快的优先
-        commandDict: dict[tuple[str, int], Command] = {}
+        # commandDict: dict[tuple[str, int], Command] = {}
+        commandList: list[list[str, int], Command] = []
 
         # 使用shuffle打乱顺序，实现相同速度下的随机排序
-        # * 这样做不太对，需要重写
-        shuffledSideList = list(self.sides.items())
-        shuffle(shuffledSideList)
 
-        for sideId, side in shuffledSideList:
+        for sideId, side in self.sides.items():
             for commandIndex, command in side.commandDict.items():
                 if command != None:
-                    commandDict[(sideId, commandIndex)] = command
+                    commandList.append([[sideId, commandIndex], command])
+        shuffle(commandList)
 
         # calculate the order
-        self.updateCommandPriority(commandDict)
+        self.updateCommandPriority(commandList)
         commandPriorityDict = {
-            commandTuple: (
+            tuple(commandTuple): (
                 command.priority if command is not None else 0,
                 self.sides[commandTuple[0]].calculateNonSpeed(commandTuple[1]),
             )
-            for commandTuple, command in commandDict.items()
+            for commandTuple, command in commandList
         }
 
         return [
@@ -345,28 +401,27 @@ class Field:
 
     def calculateSpeedOrder(self, returnNonEntity=False):
         # 计算指令的速度
-        nonSpeedDict: dict[tuple[str, int], NON] = {}
+        nonSpeedList: list[list[list[str, int], NON]] = []
 
-        # 使用shuffle打乱顺序，实现相同速度下的随机排序，需要重写
+        # 使用shuffle打乱顺序，实现相同速度下的随机排序
 
-        shuffledSideList = self.sides.items()
-        shuffle(shuffledSideList)
-
-        for sideId, side in shuffledSideList:
-            for nonIdx in len(side.activeNons):
-                nonSpeedDict[(sideId, nonIdx)] = side.calculateNonSpeed(nonIdx)
+        for sideId, side in self.sides.items():
+            for nonIdx in range(len(side.activeNons)):
+                if self.tuple2Non((sideId, nonIdx)).hp > 0:
+                    nonSpeedList.append(
+                        [[sideId, nonIdx], side.calculateNonSpeed(nonIdx)]
+                    )
+        shuffle(nonSpeedList)
 
         returnList = [
-            key for key in sorted(nonSpeedDict.keys(), key=lambda x: (-nonSpeedDict[x]))
+            tuple(key[0]) for key in sorted(nonSpeedList, key=lambda x: (-x[1]))
         ]
         if returnNonEntity:
             newreturnList = [self.tuple2Non(nonTuple) for nonTuple in returnList]
-            return returnList, newreturnList
+            return [[returnList[i], newreturnList[i]] for i in range(len(returnList))]
         return returnList
 
-    def updateCommandPriority(
-        self, commandDict: dict[tuple[str, int], Command]
-    ) -> None:
+    def updateCommandPriority(self, commandList: list[list[str, int], Command]) -> None:
         # 特殊情况下的优先级更新，比如追击
         pass
 
@@ -374,9 +429,9 @@ class Field:
         # 触发场上所有NON的名为eventName的nonEvent
         if not hasattr(NonEventsObj, eventName):
             return
-        for non, nonTuple in self.calculateSpeedOrder(returnNonEntity=True):
+        for nonTuple, non in self.calculateSpeedOrder(returnNonEntity=True):
             kwargs.update({"org": nonTuple})
-            eval("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
+            exec("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
 
     def eventTriggerSingle(self, eventName: str, nonTuple: tuple[str, int], **kwargs):
         # 触发指定NON的名为eventName的nonEvent
@@ -384,7 +439,7 @@ class Field:
             return
         non = self.tuple2Non(nonTuple)
         kwargs.update({"org": nonTuple})
-        eval("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
+        exec("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
 
     def getNonTuple(self, nonName: str, sideId: str = None):
         """给定一个non的名字，获取他的tuple。tuple可以理解为是该non的定位符。
@@ -408,11 +463,9 @@ class Field:
         else:
             for nonIdx, non in enumerate(self.sides[sideId].activeNons):
                 if non.name == nonName:
-                    print("active")
                     return (sideId, nonIdx)
             for nonIdx, non in enumerate(self.sides[sideId].notActiveNons):
                 if non.name == nonName:
-                    print("notactive")
                     return (sideId, nonIdx)
             return False
 
@@ -451,7 +504,7 @@ class Field:
         """
         for non in self.sides[sideId].notActiveNons:
             if non.hp > 0:
-                print(non.name)
+                # print(non.name)
                 return True
         return False
 
@@ -466,6 +519,7 @@ def getNonEntity(masterId: str, nonName: str) -> NON | bool:
     Returns:
         NON | bool: _description_
     """
+    makeSureDir(baseNonFilePath + "{}/NON/".format(masterId))
     path = baseNonFilePath + "{}/NON/{}.json".format(masterId, nonName)
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:

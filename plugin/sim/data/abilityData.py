@@ -1,5 +1,5 @@
-from sim.ability import *
-from sim.data.nonEventFunctions import *
+from ..ability import *
+from .nonEventFunctions import *
 
 abilityDataBase: list[Ability] = [
     Ability(
@@ -8,7 +8,7 @@ abilityDataBase: list[Ability] = [
         desc="出场时所有队友攻击等级+1",
         flags={},
         addNonEvents=NonEventsObj(
-            onActiveOnce=NonEvent(reason="Hello World", exe=helloworld)
+            onActiveOnce=[NonEvent(reason="Hello World", exe=helloWorld)]
         ),
     )
 ]

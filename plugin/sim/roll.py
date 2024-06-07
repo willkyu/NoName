@@ -1,69 +1,65 @@
 import random
 
-import globalUtils
-from sim.data.moveData import moveDataBase
-from sim.item import Rarity
-from sim.player import Player
-from species import SpeciesData
+from .globalUtils import *
+from .data.moveData import moveDataBase
+from .item import Rarity
+from .player import Player
+from .species import SpeciesData
 import datetime
-from data.speciesData import speciesDataBase
-from data.itemData import itemDataWhite, itemDataBlue, itemDataPurple, itemDataGold
-from non import initNonFromSpecies, NON, initMoveSlot
+from .data.speciesData import speciesDataBase, speciesDataDictCn
+from .data.itemData import itemDataWhite, itemDataBlue, itemDataPurple, itemDataGold
+from .non import initNonFromSpecies, NON, initMoveSlot, MoveSlot
+from .data.livingArea import areaData
+
+ITEAMRATE = 0.8
 
 
 # todo 补充补给品类和获取
-def gacha(area: str, player: Player):
-    # 总权重,用于生成随机数种子
-    buff_sum = 0
+def gacha(player: Player, area: str):
     # 从json文件读取类信息,来获取权重总和等信息
-    for item in speciesDataBase:
-        buff_sum += __getSpeciesBuffResult(item, area)
-    # 生成1-buffSum之间的随机整数,补给品占比为80%
-    supplies_num = (buff_sum * 8) // 10
-    # 轮询权重,用来检测落在哪个范围
-    random_num = random.randint(1, supplies_num + buff_sum)
+    # * 这里直接从.data.livingArea中读了
+    speciesNameCnList = [nonNameCn for nonNameCn in areaData[area]]
+    speciesRateBuffList = [
+        __getSpeciesBuffResult(speciesDataDictCn[nonNameCn])
+        for nonNameCn in speciesNameCnList
+    ]
+
+    # 补给品占比为80%
     # 如果随机数小于补给品数值，则此次获得物品
-    if random_num <= supplies_num:
+    if random.random() <= ITEAMRATE:
         return __getRandomItems(player)
 
-    # 如果随机数大于补给品数值，则获得Non
-    rate_sum = supplies_num
-    # 看落在哪个区间,则获取对应的种族
-    for item in speciesDataBase:
-        rate_sum += __getSpeciesBuffResult(item, area)
-        if rate_sum >= random_num:
-            return __getNon(item, player)
+    gotNonNameCn = random.choices(speciesNameCnList, speciesRateBuffList)
+    # 获得Non
+    return __getNon(speciesDataDictCn[gotNonNameCn], player)
 
 
 def __getNon(species: SpeciesData, player: Player):
     # 调用丘丘提供的Non实例方法然后复写其中的随机属性
     non = initNonFromSpecies(species)
     # 设置随机ability
-    randomNum = random.random()
-    if globalUtils.hiddenAbilityAvailable:
-        if 0 <= randomNum < 0.4:
-            # 大于0.5选A1 否则选A2
-            non.ability = species.abilities.A1
-        elif 0.4 <= randomNum < 0.8:
-            non.ability = species.abilities.A2
-        else:
-            non.ability = species.abilities.H
-    else:
-        if randomNum > 0.5:
-            # 大于0.5选A1 否则选A2
-            non.ability = species.abilities.A1
-        else:
-            non.ability = species.abilities.A2
+    non.ability = species.abilities.__getattribute__(
+        random.choice(
+            list(species.abilities.__dict__.keys()) - ["H"]
+            if hiddenAbilityAvailable
+            else []
+        )
+    )
+    non.gender = (
+        "N"
+        if species.generRate == None
+        else ("M" if random.random() > species.generRate else "F")
+    )
+    non.ivs = IVs(**{stat: random.randint(0, 31) for stat in statList})
+
     # 随机技能列表
-    moveSlotDict = {}
-    moveDataAmount = len(moveDataBase)
-    for i in range(4):
-        randomMoveDataNum = random.randint(0, moveDataAmount - 1)
-        moveSlot = initMoveSlot(moveDataBase[randomMoveDataNum])
-        moveSlotDict[moveSlot.name] = moveSlot
-    non.moveSlots = moveSlotDict
+    non.moveSlots = {
+        moveName: MoveSlot(moveName)
+        for moveName in random.sample(list(species.moveLearnSet.values()), 4)
+    }
+
     non.masterId = player.id
-    non.save()
+    non.save()  # 这时候会保存在暂存区，等待命名
 
 
 def __getRandomItems(player: Player):
@@ -73,7 +69,11 @@ def __getRandomItems(player: Player):
         item = random.choice(itemDataWhite)
     elif Rarity.WHITE <= random_result < Rarity.WHITE + Rarity.BLUE:
         item = random.choice(itemDataBlue)
-    elif Rarity.WHITE + Rarity.BLUE <= random_result < Rarity.WHITE + Rarity.BLUE + Rarity.PURPLE:
+    elif (
+        Rarity.WHITE + Rarity.BLUE
+        <= random_result
+        < Rarity.WHITE + Rarity.BLUE + Rarity.PURPLE
+    ):
         item = random.choice(itemDataPurple)
     else:
         item = random.choice(itemDataGold)
@@ -82,14 +82,10 @@ def __getRandomItems(player: Player):
 
 
 # 获取总权重
-def __getSpeciesBuffResult(species: SpeciesData, area: str):
-    if not species.liveArea.__contains__(area):
-        return 0
+def __getSpeciesBuffResult(species: SpeciesData):
     timePeriodRateBuff = getTimePeriodRateBuff(species)
     seasonRateBuff = getSeasonRateBuff(species)
-    if timePeriodRateBuff == 0 or seasonRateBuff == 0:
-        return 0
-    return species.baseRateBuff + timePeriodRateBuff + seasonRateBuff
+    return species.baseRateBuff * timePeriodRateBuff * seasonRateBuff
 
 
 # 获取时间权重

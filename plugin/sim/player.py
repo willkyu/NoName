@@ -1,9 +1,7 @@
 import random
 import json
 
-from sim.globalUtils import *
-from sim.item import ItemData
-from sim.livingArea import Area
+from .globalUtils import *
 
 
 class Player:
@@ -20,6 +18,7 @@ class Player:
         self.nickname = getNickname(self.id)
         # print(self.nickname)
         self.path = baseNonFilePath + "{}/".format(self.id)
+        makeSureDir(self.path)
         if not os.path.exists(self.path + "userConfig.json"):
             createNewConfig(self.id)
         with open(self.path + "userConfig.json", "r", encoding="utf-8") as f:
@@ -39,7 +38,7 @@ class Player:
         TODO 这里我觉得应该直接传入参数了，比如区域的str，
              指令直接在外部处理指令的地方判断。
         """
-        global nonBabyId
+        # global nonBabyId
         if self.coin < 10:
             return "余额为:{" + str(self.coin) + "},余额不足请下次再来捏"
         elif msg == ".获取NonBaby":
@@ -48,12 +47,12 @@ class Player:
             return nonBabyId
         elif msg == ".获取沙漠NonBaby":
             if self.coin < 20:
-                return "余额为:{" + str(self.coin) + "},余额不足请下次再来捏"
+                return "余额为:[" + str(self.coin) + "],余额不足请下次再来捏"
             nonBabyId = self.getRandomNonBabyId()
             self.coin += -20
             return
 
-    def getRandomNonBabyId(self):
+    def getRandomNonBabyId(self, area: str):
         # 占位 做动态出现率
         return random.randint(1, 10000)
 
@@ -66,5 +65,5 @@ class Player:
 
     def updateStatus(self):
         # 将JSON数据写入文件
-        with open(baseNonFilePath + "{}/".format(self.id), 'w') as file:
-            json.dump(self, file, indent=4)
+        with open(self.path, "w+", encoding="utf-8") as file:
+            json.dump(self, file, indent=4, ensure_ascii=False)

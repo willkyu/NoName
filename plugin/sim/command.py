@@ -1,4 +1,4 @@
-from sim.globalUtils import *
+from .globalUtils import *
 
 # from sim.data.moveData import moveDataDictEn
 

@@ -11,8 +11,11 @@ class Rarity:
     PURPLE = 0.15
     GOLD = 0.05
 
+
 @dataclass
 class ItemData:
+    # TODO这个不对，物品应该和特性是差不多的，和move不一样（可能有使用次数的ability）
+
     """招式数据类型，不是具体绑定在NON身上的招式"""
 
     id: int

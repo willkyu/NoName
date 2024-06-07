@@ -7,12 +7,12 @@ import os
 import requests
 
 
-from sim.data.moveData import *
+from .data.moveData import *
 
 BattleMode = Literal["single", "double", "chaos4"]
+battleMode = ["single", "double", "chaos4"]
 
 baseNonFilePath = "./plugin/data/NoName/data/"
-baseNonFilePath = "./"
 
 
 @dataclass
@@ -25,6 +25,8 @@ def makeSureDir(path: str) -> None:
     if not os.path.exists(path):
         os.mkdir(path)
 
+
+makeSureDir(baseNonFilePath)
 
 conf = ConfigParser()
 
@@ -67,7 +69,7 @@ def createNewConfig(playerId: str):
     }
     makeSureDir(newdict["path"])
     with open(newdict["path"] + "userConfig.json", "w+", encoding="utf-8") as f:
-        dump(newdict, f)
+        dump(newdict, f, ensure_ascii=False)
 
 
 def getNickname(qqId: str) -> str:
@@ -95,10 +97,10 @@ EvRange = Annotated[int, Range(0, 252)]
 statsLevelRange = Annotated[int, Range(-6, 6)]
 
 statList = ["HP", "ATK", "DEF", "SPA", "SPD", "SPE"]
+Type = str
 
 # 隐藏特性开启flag-活动事件
 hiddenAbilityAvailable = False
-
 
 
 @dataclass

@@ -1,9 +1,12 @@
+from __future__ import annotations
 import random
 
-from sim.ability import SimpleField
+from ..ability import *
+
+# TODO
 
 
-def helloworld(self, field: SimpleField, **kwargs):
+def helloworld(self, field: Field, **kwargs):
     side = field.sides[kwargs["org"][0]]
     for nonIndex in len(side.activeNons):
         nonIndex: int
@@ -17,8 +20,9 @@ def helloworld(self, field: SimpleField, **kwargs):
     # field.
 
 
-def noGlasses(self, field: SimpleField, **kwargs):
+def noGlasses(self, field: Field, **kwargs):
     orgNonTuple = kwargs["org"]
+    orgNonTuple: tuple[str, int]
     field.sides[orgNonTuple[0]].commandList[
         orgNonTuple[1]
     ].targetTuple = field.ABC()  # ABC是写的随机获取一个目标的函数

@@ -1,18 +1,24 @@
 import OlivOS
-from utils.config import Config
-from utils.groupCommand import unity_group_reply
+from .utils.config import *
+from .utils.groupCommand import unityGroupReply
+from .utils.privateCommand import unityPrivateReply
+from .sim.battle import Battle
 
+# activeGroupList = ["957736515"]
+# masterList = ["496373158"]
 
-activeGroupList = ["957736515"]
-masterList = ["496373158"]
-
-config = Config(groupList=activeGroupList, masterList=masterList)
+config = Config()
 
 botHash = "19e44f7870aaaa4d2cb384c92482ab79"
 pluginName = "NoN"
 botSend = None
 
+groupBattleDict: dict[str, Battle] = {}
 
+
+def makeSureDir(path: str) -> None:
+    if not os.path.exists(path):
+        os.mkdir(path)
 
 
 def initmsg(Proc):
@@ -24,7 +30,7 @@ def initmsg(Proc):
             bot_info=Proc.Proc_data["bot_info_dict"][botHash], fakename=pluginName
         ),
         Proc.log,
-    ).send
+    )
 
 
 class Event(object):
@@ -33,9 +39,13 @@ class Event(object):
         pass
 
     def private_message(plugin_event, Proc):
+        global botSend
+        global groupBattleDict
+        unityPrivateReply(plugin_event, config, botSend, groupBattleDict)
         pass
 
     def group_message(plugin_event, Proc):
         global botSend
-        unity_group_reply(plugin_event, Proc, config, botSend)
+        global groupBattleDict
+        unityGroupReply(plugin_event, config, botSend, groupBattleDict)
         pass

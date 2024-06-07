@@ -1,5 +1,5 @@
-from sim.globalUtils import *
-from sim.ability import Ability, SpeciesAbilities
+from .globalUtils import *
+from .ability import Ability, SpeciesAbilities
 
 
 @dataclass
@@ -34,8 +34,9 @@ class SpeciesStrength:
 @dataclass
 class SpeciesData:
     name: str
+    nameCn: str
     idex: int
-    types: list[str]
+    types: list[Type]
     abilities: SpeciesAbilities
     speciesStrength: SpeciesStrength
 
@@ -46,7 +47,10 @@ class SpeciesData:
     季节
     """
     # 我觉得liveArea在这里可以不写，直接在area那里调用找这里的概率就行
-    liveArea: list[str]
+    # liveArea: list[str]
+    moveLearnSet: dict[int, str] = None  # {learnAtLevel: moveName}
+
+    generRate: float | None = 0.5  # male rate
 
     baseRateBuff: int = 5
 
@@ -54,6 +58,15 @@ class SpeciesData:
 
     # TODO
     pass
+
+    def __post_init__(self):
+        if self.moveLearnSet is None:
+            self.moveLearnSet = {
+                1: "Tackle",
+                2: "Tackle",
+                3: "Tackle",
+                4: "Tackle",
+            }
 
 
 def getSpeciesRateBuff(species: SpeciesData):
