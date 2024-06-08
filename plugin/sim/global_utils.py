@@ -1,18 +1,18 @@
 from dataclasses import dataclass
-from typing import Literal, Callable, Annotated
+from typing import Literal, Annotated
 from configparser import ConfigParser
-from json import dump, load
+from json import dump
 import os
 
 import requests
 
 
-from .data.moveData import *
+from .data.move_data import move_data_dict_cn, move_data_dict_en
 
 BattleMode = Literal["single", "double", "chaos4"]
-battleMode = ["single", "double", "chaos4"]
+battle_mode = ["single", "double", "chaos4"]
 
-baseNonFilePath = "./plugin/data/NoName/data/"
+BASE_NON_FILE_PATH = "./plugin/data/NoName/data/"
 
 
 @dataclass
@@ -21,17 +21,17 @@ class Range:
     max: int
 
 
-def makeSureDir(path: str) -> None:
+def make_sure_dir(path: str) -> None:
     if not os.path.exists(path):
         os.mkdir(path)
 
 
-makeSureDir(baseNonFilePath)
+make_sure_dir(BASE_NON_FILE_PATH)
 
 conf = ConfigParser()
 
 
-def readCoin(user_id):
+def read_coin(user_id):
     path = "./plugin/data/ChanceCustom/Mance/数据/背包/{}.ini".format(user_id)
     if os.path.exists(path):
         conf.read(
@@ -42,7 +42,7 @@ def readCoin(user_id):
     return 0
 
 
-def writeCoin(user_id, coin):
+def write_coin(user_id, coin):
     path = "./plugin/data/ChanceCustom/Mance/数据/背包/{}.ini".format(user_id)
     if os.path.exists(path):
         conf.read(
@@ -55,52 +55,52 @@ def writeCoin(user_id, coin):
     return
 
 
-def createNewConfig(playerId: str):
+def create_new_config(player_id: str):
     """为新玩家创建配置文件
 
     Args:
         playerId (str): _description_
     """
     newdict = {
-        "id": playerId,
-        "path": baseNonFilePath + "{}/".format(playerId),
+        "id": player_id,
+        "path": BASE_NON_FILE_PATH + "{}/".format(player_id),
         "team": [],
-        "dreamCrystal": 0,
+        "dream_crystal": 0,
     }
-    makeSureDir(newdict["path"])
+    make_sure_dir(newdict["path"])
     with open(newdict["path"] + "userConfig.json", "w+", encoding="utf-8") as f:
         dump(newdict, f, ensure_ascii=False)
 
 
-def getNickname(qqId: str) -> str:
+def get_nickname(qqId: str) -> str:
     try:
         return eval(
             requests.get(
                 "https://api.oioweb.cn/api/qq/info?qq={}".format(qqId), timeout=(1, 2)
             ).content.decode("utf-8")
         )["result"]["nickname"]
-    except:
+    except requests.RequestException:
         return qqId
 
 
-def getMoveEn(moveNameEn: str):
-    return moveDataDictEn[moveNameEn]
+def get_move_en(move_name_en: str):
+    return move_data_dict_en[move_name_en]
 
 
-def getMoveCn(moveNameCn: str):
-    return moveDataDictCn[moveNameCn]
+def getMoveCn(move_name_cn: str):
+    return move_data_dict_cn[move_name_cn]
 
 
 LevelRange = Annotated[int, Range(1, 100)]
 IvRange = Annotated[int, Range(0, 31)]
 EvRange = Annotated[int, Range(0, 252)]
-statsLevelRange = Annotated[int, Range(-6, 6)]
+StatsLevelRange = Annotated[int, Range(-6, 6)]
 
-statList = ["HP", "ATK", "DEF", "SPA", "SPD", "SPE"]
+stat_list = ["HP", "ATK", "DEF", "SPA", "SPD", "SPE"]
 Type = str
 
 # 隐藏特性开启flag-活动事件
-hiddenAbilityAvailable = False
+hidden_ability_available = False
 
 
 @dataclass
@@ -115,13 +115,13 @@ class IVs:
 
 @dataclass
 class StatLevel:
-    ATK: statsLevelRange = 0
-    DEF: statsLevelRange = 0
-    SPA: statsLevelRange = 0
-    SPD: statsLevelRange = 0
-    SPE: statsLevelRange = 0
-    ACC: statsLevelRange = 0
-    EVA: statsLevelRange = 0
+    ATK: StatsLevelRange = 0
+    DEF: StatsLevelRange = 0
+    SPA: StatsLevelRange = 0
+    SPD: StatsLevelRange = 0
+    SPE: StatsLevelRange = 0
+    ACC: StatsLevelRange = 0
+    EVA: StatsLevelRange = 0
 
 
 @dataclass
@@ -142,8 +142,8 @@ class EVs:
     SPD: EvRange = 0
     SPE: EvRange = 0
 
-    def changeEv(self, ev: str, num: int, addMode: bool = True):
-        if ev.upper() not in statList:
+    def changeEv(self, ev: str, num: int, add_mode: bool = True):
+        if ev.upper() not in stat_list:
             print("Ev not valid!")
             return
-        eval("self.{}{}={}".format(ev.upper(), "+" if addMode else "-", num))
+        eval("self.{}{}={}".format(ev.upper(), "+" if add_mode else "-", num))

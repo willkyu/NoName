@@ -8,10 +8,10 @@ print("Done.")
 
 commandPriorityDict = {"a": 3, "b": 2, "c": 3, "d": 1}
 
-from sim.non import NON
-from sim.globalUtils import *
-from sim.command import Command
-from time import sleep
+# from sim.non import NON
+# from plugin.sim.global_utils import *
+# from sim.command import Command
+# from time import sleep
 
 # nontest = NON(
 #     name="测试NON",
@@ -42,7 +42,7 @@ mopo = "403363659"
 willQ = "496373158"
 
 battletest = Battle(willQ, "131313", "double", botTest())
-battletest.addPlayer(mopo)
+battletest.add_player(mopo)
 
 while not battletest.finished:
     command = input()
@@ -53,13 +53,13 @@ import re
 
 print(re.findall("(\d).*\[(.*?)\]", "gasdg1afgj[124]galkj"))
 
-battletest.addCommand(mopo, "0")
-battletest.addCommand(willQ, "0")
+battletest.add_command(mopo, "0")
+battletest.add_command(willQ, "0")
 
-battletest.addCommand(mopo, "测试NON000", Command("测试NON", "move", "Tackle"))
-battletest.addCommand(mopo, "测试NON001", Command("测试NON003", "switch", ""))
-battletest.addCommand(willQ, "测试NON", Command("测试NON001", "move", "Tackle"))
-battletest.addCommand(willQ, "测试NON1", Command("测试NON001", "move", "Tackle"))
+battletest.add_command(mopo, "测试NON000", Command("测试NON", "move", "Tackle"))
+battletest.add_command(mopo, "测试NON001", Command("测试NON003", "switch", ""))
+battletest.add_command(willQ, "测试NON", Command("测试NON001", "move", "Tackle"))
+battletest.add_command(willQ, "测试NON1", Command("测试NON001", "move", "Tackle"))
 
 # battletest.addCommand(mopo, "测试NON000", Command("测试NON", "move", "Tackle"))
 # battletest.addCommand(mopo, "测试NON003", Command("测试NON", "move", "Tackle"))

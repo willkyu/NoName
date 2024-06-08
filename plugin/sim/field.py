@@ -1,13 +1,17 @@
+from __future__ import annotations
+from json import load
+import os
 from random import shuffle, choice
 import math
+from typing import Annotated, Callable, Literal
 
 # import OlivOS
 
-from .globalUtils import *
+from .global_utils import BattleMode, get_nickname, make_sure_dir, BASE_NON_FILE_PATH
 from .non import NON, MoveSlot
 from .command import Command
 from .player import Player
-from .nonEvents import NonEventsObj
+from .non_events import NonEventsObj
 
 
 class Side:
@@ -17,29 +21,32 @@ class Side:
         _type_: _description_
     """
 
-    nonNum: Literal[1, 2]  # 该规则下一次能出战几个NON
-    activeNons: list[NON]  # 出战的NON
-    notActiveNons: list[NON]  # 备战NON
+    non_num: Literal[1, 2]  # 该规则下一次能出战几个NON
+    active_nons: list[NON]  # 出战的NON
+    not_active_nons: list[NON]  # 备战NON
 
-    commandDict: dict[int, Command]  # {index, Command} index是出战NON的index
+    command_dict: dict[int, Command]  # {index, Command} index是出战NON的index
 
     # 一些其他的东西，如护盾
     shield: bool = False  # 己方全体护盾
 
     lose = False
 
-    def __init__(self, team: list[NON], battleMode: BattleMode) -> None:
+    def __init__(self, team: list[NON], battle_mode: BattleMode) -> None:
         """给玩家的teamlist，战斗规则
 
         Args:
             team (list[NON]): _description_
             battleMode (BattleMode): _description_
         """
-        self.nonNum = 2 if battleMode == "double" else 1
-        self.activeNons, self.notActiveNons = team[: self.nonNum], team[self.nonNum :]
-        self.commandDict = {i: None for i in range(self.nonNum)}
+        self.non_num = 2 if battle_mode == "double" else 1
+        self.active_nons, self.not_active_nons = (
+            team[: self.non_num],
+            team[self.non_num :],
+        )
+        self.command_dict = {i: None for i in range(self.non_num)}
 
-    def addCommand(self, index: int, command: Command) -> str | bool:
+    def add_command(self, index: int, command: Command) -> str | bool:
         """添加指令，如果成功返回True，否则是str，描述不合法原因
 
         Args:
@@ -49,20 +56,20 @@ class Side:
         Returns:
             str|bool: _description_
         """
-        if index >= self.nonNum or index < 0:
+        if index >= self.non_num or index < 0:
             return "指令对象超出范围"
-        valid = self.checkCommandValid(index, command)
+        valid = self.check_command_valid(index, command)
         if isinstance(valid, str):
             return valid
 
         # 这里添加其他可能性
 
         pass
-        self.commandDict[index] = command
+        self.command_dict[index] = command
         # print("{}已添加:\n{}\n".format(index, command))
         return True
 
-    def checkCommandValid(self, index: int, command: Command) -> str | bool:
+    def check_command_valid(self, index: int, command: Command) -> str | bool:
         """检查指令合法性，如果合法返回True，否则是str，描述不合法原因
 
         Args:
@@ -73,21 +80,21 @@ class Side:
             str|bool: _description_
         """
         if command.action == "move" and command.move not in [
-            moveslot for moveslot in self.activeNons[index].moveSlots.keys()
+            move_slot for move_slot in self.active_nons[index].move_slots.keys()
         ]:
             return "无法使用该NON不会的招式"
-        if self.activeNons[index].hp <= 0:
+        if self.active_nons[index].hp <= 0:
             return "该NON已昏厥"
         # 这之后可以再加别的检查合法性，比如不能交换状态进行交换
         return True
 
-    def calculateNonSpeed(self, commandIndex: int) -> int:
+    def calculate_non_speed(self, command_index: int) -> int:
         # 计算指令的NON的当前速度
-        non = self.activeNons[commandIndex]
+        non = self.active_nons[command_index]
         return non.stat.SPE
         pass
 
-    def getAllCommand(self) -> bool:
+    def get_all_command(self) -> bool:
         """是否该Side的指令全部收到
 
         Returns:
@@ -95,15 +102,15 @@ class Side:
         """
 
         if None in [
-            self.commandDict[idx]
-            for idx, non in enumerate(self.activeNons)
+            self.command_dict[idx]
+            for idx, non in enumerate(self.active_nons)
             if non.hp > 0
         ]:
             return False
         return True
 
-    def checkLose(self):
-        for non in self.activeNons:
+    def check_lose(self):
+        for non in self.active_nons:
             if non.hp > 0:
                 return False
         self.lose = True
@@ -120,26 +127,26 @@ class Field:
     """
 
     sides: dict[str, Side]  # {userId: Side} 有哪几个玩家，分别对应一个Side
-    nonTeamDict: dict[str, list[NON]]  # {userId:[NON]} 玩家的队伍
+    non_team_dict: dict[str, list[NON]]  # {userId:[NON]} 玩家的队伍
     log: list[str]
-    waitSwitchDict: dict[str, list[int]] = (
+    wait_switch_dict: dict[str, list[int]] = (
         None  # 用于存储是否需要等待用户换上NON，一般用于NON fainted之后，有些特殊技能也会用上
     )
-    botSendGroup: Callable
+    bot_send_group: Callable
 
     weather: str = "Normal"
 
     # 一些其他的东西
-    lastUsedMove: str | None = None
+    last_used_move: str | None = None
 
     pass
 
     def __init__(
         self,
-        playerList: Annotated[list[Player], "len should be 2 or 4"],
-        battleMode: BattleMode,
+        player_list: Annotated[list[Player], "len should be 2 or 4"],
+        battle_mode: BattleMode,
         log: list[str],
-        botSendGroup: Callable,
+        bot_send_group: Callable,
     ) -> None:
         """初始化field
 
@@ -148,28 +155,28 @@ class Field:
             battleMode (BattleMode): 规则
             log (list[str]): log
         """
-        self.nonTeamDict = {
-            player.id: [getNonEntity(player.id, non) for non in player.team]
-            for player in playerList
+        self.non_team_dict = {
+            player.id: [get_non_entity(player.id, non) for non in player.team]
+            for player in player_list
         }
         self.sides = {
-            player.id: Side(self.nonTeamDict[player.id], battleMode)
-            for player in playerList
+            player.id: Side(self.non_team_dict[player.id], battle_mode)
+            for player in player_list
         }
         self.log = log
-        self.botSendGroup = botSendGroup
+        self.bot_send_group = bot_send_group
 
-        self.waitSwitchDict = {playerId: [] for playerId in self.sides.keys()}
+        self.wait_switch_dict = {player_id: [] for player_id in self.sides.keys()}
         pass
 
-    def exeCommand(self, sideId: str, commandIndex: int):
+    def exeCommand(self, side_id: str, command_index: int):
         # * 注意，exeCommand之前必须确保指令可行，也就是在addCommand阶段就要检查指令可行性
         # * 执行指令，sideId与playerId是一个东西
         # do this command
-        command: Command = self.sides[sideId].commandDict[commandIndex]
+        command: Command = self.sides[side_id].command_dict[command_index]
 
-        if self.tuple2Non((sideId, commandIndex)).hp <= 0:
-            self.sides[sideId].commandDict[commandIndex] = None
+        if self.tuple2non((side_id, command_index)).hp <= 0:
+            self.sides[side_id].command_dict[command_index] = None
             return
 
         match command.action:
@@ -177,81 +184,81 @@ class Field:
                 # sideId输
                 pass
             case "switch":
-                targetNonIndex = command.targetTuple[1]
-                self.eventTriggerSingle("beforeSwitch", (sideId, commandIndex))
+                target_non_index = command.target_tuple[1]
+                self.event_trigger_single("before_switch", (side_id, command_index))
                 self.log.append(
                     "{}收回了{}，派出了{}.".format(
-                        sideId,
-                        self.sides[sideId].activeNons[commandIndex].name,
+                        side_id,
+                        self.sides[side_id].active_nons[command_index].name,
                         command.target,
                     )
                 )
 
                 # 交换
                 (
-                    self.sides[sideId].activeNons[commandIndex],
-                    self.sides[sideId].notActiveNons[targetNonIndex],
+                    self.sides[side_id].active_nons[command_index],
+                    self.sides[side_id].not_active_nons[target_non_index],
                 ) = (
-                    self.sides[sideId].notActiveNons[targetNonIndex],
-                    self.sides[sideId].activeNons[commandIndex],
+                    self.sides[side_id].not_active_nons[target_non_index],
+                    self.sides[side_id].active_nons[command_index],
                 )
-                self.eventTriggerSingle("onActiveOnce", (sideId, commandIndex))
+                self.event_trigger_single("on_active_once", (side_id, command_index))
             case "specialEvo":
                 pass
             case "item":
                 pass
             case "move":
-                self.exeMove(sideId, commandIndex)
+                self.exeMove(side_id, command_index)
                 pass
-        self.sides[sideId].commandDict[commandIndex] = None
+        self.sides[side_id].command_dict[command_index] = None
         pass
         # print(self.log)
 
-    def exeWaitSwitch(self, playerId: str, orgId: int, nonName: str):
+    def exe_wait_switch(self, player_id: str, org_id: int, non_name: str):
         # 执行替补，一般是因为位置空了需要进行备战替补
         # orgId是需要换上的位置index，nonName是换上的NON的name
 
-        if nonName not in [non.name for non in self.sides[playerId].notActiveNons]:
+        if non_name not in [non.name for non in self.sides[player_id].not_active_nons]:
             return False
-        targetNonIndex = self.getNonTuple(nonName, playerId)[1]
+        target_non_index = self.get_non_tuple(non_name, player_id)[1]
         # self.eventTriggerSingle("beforeSwitch", (sideId, commandIndex))
-        self.botSendGroup(
+        self.bot_send_group(
             "{}派出了{}到位置{}.".format(
-                playerId,
-                self.sides[playerId].notActiveNons[targetNonIndex].name,
-                orgId,
+                player_id,
+                self.sides[player_id].not_active_nons[target_non_index].name,
+                org_id,
             )
         )
         (
-            self.sides[playerId].activeNons[orgId],
-            self.sides[playerId].notActiveNons[targetNonIndex],
+            self.sides[player_id].active_nons[org_id],
+            self.sides[player_id].not_active_nons[target_non_index],
         ) = (
-            self.sides[playerId].notActiveNons[targetNonIndex],
-            self.sides[playerId].activeNons[orgId],
+            self.sides[player_id].not_active_nons[target_non_index],
+            self.sides[player_id].active_nons[org_id],
         )
-        self.eventTriggerSingle("onActiveOnce", (playerId, orgId))
+        self.event_trigger_single("on_active_once", (player_id, org_id))
         return True
 
-    def exeMove(self, sideId: str, commandIndex: int):
+    def exeMove(self, side_id: str, command_index: int):
         # 执行move，比较复杂。还没写完
-        command: Command = self.sides[sideId].commandDict[commandIndex]
+        command: Command = self.sides[side_id].command_dict[command_index]
         if command is None:
             return
-        non = self.tuple2Non((sideId, commandIndex))
-        non.moveSlots[command.move].pp -= 1
-        targetTuple = command.targetTuple
-        targetNon = self.tuple2Non(targetTuple)
-        if targetNon.hp <= 0:
-            targetTuple = self.getRandomActiveNonTuple(targetTuple[0])
-            if not targetTuple:
+        non = self.tuple2non((side_id, command_index))
+        non.move_slots[command.move].pp -= 1
+        target_tuple = command.target_tuple
+        target_non = self.tuple2non(target_tuple)
+        if target_non.hp <= 0:
+            target_tuple = self.get_random_active_non_tuple(target_tuple[0])
+            if not target_tuple:
                 self.log.append("没有目标.")
                 return
-            targetNon = self.tuple2Non(targetTuple)
-        if non.moveSlots[command.move].move.category != "Auxiliary":
-            damage = self.calculateDamage(
+            target_non = self.tuple2non(target_tuple)
+        if non.move_slots[command.move].move.category != "Auxiliary":
+            damage = self.calculate_damage(
                 non,
-                non.moveSlots[command.move],
-                targetNon,
+                non.move_slots[command.move],
+                target_non,
             )
             # self.log.append(
             #     "{}被{}使用{}攻击，受到了{}点伤害，还剩{}HP.".format(
@@ -266,29 +273,29 @@ class Field:
                 "{}--[{}]-->{}[HP:{}-{}={}/{}]".format(
                     non.name,
                     command.move,
-                    targetNon.name,
-                    targetNon.hp,
+                    target_non.name,
+                    target_non.hp,
                     damage,
-                    max(targetNon.hp - damage, 0),
-                    targetNon.hpmax,
+                    max(target_non.hp - damage, 0),
+                    target_non.hp_max,
                 )
             )
-            self.makeDamage(targetTuple, damage)
+            self.make_damage(target_tuple, damage)
         else:
             # 辅助招式
             pass
 
         pass
 
-    def makeDamage(self, nonTuple: tuple[str, int], damage: int):
-        nonEntity = self.tuple2Non(nonTuple)
-        if nonEntity.hp <= 0:
+    def make_damage(self, non_tuple: tuple[str, int], damage: int):
+        non_entity = self.tuple2non(non_tuple)
+        if non_entity.hp <= 0:
             return
-        nonEntity.hp -= min(damage, nonEntity.hp)
-        if nonEntity.hp <= 0:
-            self.faintedProcess(nonTuple)
+        non_entity.hp -= min(damage, non_entity.hp)
+        if non_entity.hp <= 0:
+            self.fainted_process(non_tuple)
 
-    def getRandomActiveNonTuple(self, sideId=None):
+    def get_random_active_non_tuple(self, side_id=None):
         """获取一个随机的active的NON，不给sideId就从全局active的NON中选。
            现在有个问题是可能会选择自己
 
@@ -298,150 +305,156 @@ class Field:
         Returns:
             _type_: _description_
         """
-        tupleList = []
-        if sideId is not None:
-            for idx in range(self.sides[sideId].nonNum):
-                if self.tuple2Non((sideId, idx), active=True).hp > 0:
-                    tupleList.append((sideId, idx))
+        tuple_list = []
+        if side_id is not None:
+            for idx in range(self.sides[side_id].non_num):
+                if self.tuple2non((side_id, idx), active=True).hp > 0:
+                    tuple_list.append((side_id, idx))
         else:
-            for sideId, side in self.sides.items():
-                for idx in range(side.nonNum):
-                    if self.tuple2Non((sideId, idx), active=True).hp > 0:
-                        tupleList.append((sideId, idx))
-        if len(tupleList) > 0:
-            return choice(tupleList)
+            for side_id, side in self.sides.items():
+                for idx in range(side.non_num):
+                    if self.tuple2non((side_id, idx), active=True).hp > 0:
+                        tuple_list.append((side_id, idx))
+        if len(tuple_list) > 0:
+            return choice(tuple_list)
         return False
 
-    def faintedProcess(self, targetTuple: tuple[str, int]):
+    def fainted_process(self, target_tuple: tuple[str, int]):
         # fainted的处理
         self.log.append(
             "[{}]的[{}]倒下了……".format(
-                getNickname(targetTuple[0]), self.tuple2Non(targetTuple).name
+                get_nickname(target_tuple[0]), self.tuple2non(target_tuple).name
             )
         )
-        if self.haveNonToSwitch(targetTuple[0]):
-            self.waitSwitchDict[targetTuple[0]].append(targetTuple[1])
-            self.log.append("{}将要选择NON到位置{}上.".format(*targetTuple))
-        elif self.sides[targetTuple[0]].checkLose():
-            self.log.append("{}没有可以拿出的NON了……".format(targetTuple[0]))
+        if self.have_non_to_switch(target_tuple[0]):
+            self.wait_switch_dict[target_tuple[0]].append(target_tuple[1])
+            self.log.append("{}将要选择NON到位置{}上.".format(*target_tuple))
+        elif self.sides[target_tuple[0]].check_lose():
+            self.log.append("{}没有可以拿出的NON了……".format(target_tuple[0]))
         pass
 
-    def calculateDamage(self, orgNon: NON, move: MoveSlot, targetNon: NON):
+    def calculate_damage(self, org_non: NON, move: MoveSlot, target_non: NON):
         # 计算伤害，orgNon是攻击方
-        multiply = 1.0 * (1.5 if move.move.type in orgNon.types else 1.0)
+        multiply = 1.0 * (1.5 if move.move.type in org_non.types else 1.0)
         category = move.move.category
         # TODO 计算属性克制倍率
         damage = multiply * (
-            (2 * orgNon.level + 10)
+            (2 * org_non.level + 10)
             / 250
             * (
-                orgNon.stat.ATK
+                org_non.stat.ATK
                 * (
-                    (2 + orgNon.statsLevel.ATK) / 2
-                    if orgNon.statsLevel.ATK > 0
-                    else 2 / (2 - orgNon.statsLevel.ATK)
+                    (2 + org_non.stats_level.ATK) / 2
+                    if org_non.stats_level.ATK > 0
+                    else 2 / (2 - org_non.stats_level.ATK)
                 )
                 if category == "Physical"
                 else (
-                    orgNon.stat.SPA * (2 + orgNon.statsLevel.SPA) / 2
-                    if orgNon.statsLevel.SPA > 0
-                    else 2 / (2 - orgNon.statsLevel.SPA)
+                    org_non.stat.SPA * (2 + org_non.stats_level.SPA) / 2
+                    if org_non.stats_level.SPA > 0
+                    else 2 / (2 - org_non.stats_level.SPA)
                 )
             )
             / (
-                targetNon.stat.DEF
+                target_non.stat.DEF
                 * (
-                    (2 + orgNon.statsLevel.DEF) / 2
-                    if orgNon.statsLevel.DEF > 0
-                    else 2 / (2 - orgNon.statsLevel.DEF)
+                    (2 + org_non.stats_level.DEF) / 2
+                    if org_non.stats_level.DEF > 0
+                    else 2 / (2 - org_non.stats_level.DEF)
                 )
                 if category == "Physical"
-                else targetNon.stat.SPD
+                else target_non.stat.SPD
                 * (
-                    (2 + orgNon.statsLevel.SPD) / 2
-                    if orgNon.statsLevel.SPD > 0
-                    else 2 / (2 - orgNon.statsLevel.SPD)
+                    (2 + org_non.stats_level.SPD) / 2
+                    if org_non.stats_level.SPD > 0
+                    else 2 / (2 - org_non.stats_level.SPD)
                 )
             )
-            * move.move.basePower
+            * move.move.base_power
             + 2
         )
 
         return max(math.floor(damage), 1)
 
-    def calculateCommandOrder(self):
+    def calculate_command_order(self):
         # 计算指令的顺序，同优先级下速度快的优先
         # commandDict: dict[tuple[str, int], Command] = {}
-        commandList: list[list[str, int], Command] = []
+        command_list: list[tuple[list[tuple[str, int]], Command]] = []
 
         # 使用shuffle打乱顺序，实现相同速度下的随机排序
 
         for sideId, side in self.sides.items():
-            for commandIndex, command in side.commandDict.items():
-                if command != None:
-                    commandList.append([[sideId, commandIndex], command])
-        shuffle(commandList)
+            for command_index, command in side.command_dict.items():
+                if command is not None:
+                    command_list.append([[sideId, command_index], command])
+        shuffle(command_list)
 
         # calculate the order
-        self.updateCommandPriority(commandList)
-        commandPriorityDict = {
-            tuple(commandTuple): (
+        self.update_command_priority(command_list)
+        command_priority_dict = {
+            tuple(command_tuple): (
                 command.priority if command is not None else 0,
-                self.sides[commandTuple[0]].calculateNonSpeed(commandTuple[1]),
+                self.sides[command_tuple[0]].calculate_non_speed(command_tuple[1]),
             )
-            for commandTuple, command in commandList
+            for command_tuple, command in command_list
         }
 
         return [
             key
             for key, value in sorted(
-                list(commandPriorityDict.items()), key=lambda x: (-x[1][0], -x[1][1])
+                list(command_priority_dict.items()), key=lambda x: (-x[1][0], -x[1][1])
             )
         ]
 
-    def calculateSpeedOrder(self, returnNonEntity=False):
+    def calculate_speed_order(self, return_non_entity=False):
         # 计算指令的速度
-        nonSpeedList: list[list[list[str, int], NON]] = []
+        non_speed_list: list[list[list[str, int], NON]] = []
 
         # 使用shuffle打乱顺序，实现相同速度下的随机排序
 
-        for sideId, side in self.sides.items():
-            for nonIdx in range(len(side.activeNons)):
-                if self.tuple2Non((sideId, nonIdx)).hp > 0:
-                    nonSpeedList.append(
-                        [[sideId, nonIdx], side.calculateNonSpeed(nonIdx)]
+        for side_id, side in self.sides.items():
+            for non_idx in range(len(side.active_nons)):
+                if self.tuple2non((side_id, non_idx)).hp > 0:
+                    non_speed_list.append(
+                        [[side_id, non_idx], side.calculate_non_speed(non_idx)]
                     )
-        shuffle(nonSpeedList)
+        shuffle(non_speed_list)
 
-        returnList = [
-            tuple(key[0]) for key in sorted(nonSpeedList, key=lambda x: (-x[1]))
+        return_list = [
+            tuple(key[0]) for key in sorted(non_speed_list, key=lambda x: (-x[1]))
         ]
-        if returnNonEntity:
-            newreturnList = [self.tuple2Non(nonTuple) for nonTuple in returnList]
-            return [[returnList[i], newreturnList[i]] for i in range(len(returnList))]
-        return returnList
+        if return_non_entity:
+            new_return_list = [self.tuple2non(non_tuple) for non_tuple in return_list]
+            return [
+                [return_list[i], new_return_list[i]] for i in range(len(return_list))
+            ]
+        return return_list
 
-    def updateCommandPriority(self, commandList: list[list[str, int], Command]) -> None:
+    def update_command_priority(
+        self, command_list: list[tuple[list[tuple[str, int]], Command]]
+    ) -> None:
         # 特殊情况下的优先级更新，比如追击
         pass
 
-    def eventTriggerAll(self, eventName: str, **kwargs):
+    def event_trigger_all(self, event_name: str, **kwargs):
         # 触发场上所有NON的名为eventName的nonEvent
-        if not hasattr(NonEventsObj, eventName):
+        if not hasattr(NonEventsObj, event_name):
             return
-        for nonTuple, non in self.calculateSpeedOrder(returnNonEntity=True):
-            kwargs.update({"org": nonTuple})
-            exec("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
+        for non_tuple, non in self.calculate_speed_order(return_non_entity=True):
+            kwargs.update({"org": non_tuple})
+            exec("non.non_events.{}.exe(self,**kwargs)".format(event_name))
 
-    def eventTriggerSingle(self, eventName: str, nonTuple: tuple[str, int], **kwargs):
+    def event_trigger_single(
+        self, event_name: str, non_tuple: tuple[str, int], **kwargs
+    ):
         # 触发指定NON的名为eventName的nonEvent
-        if not hasattr(NonEventsObj, eventName):
+        if not hasattr(NonEventsObj, event_name):
             return
-        non = self.tuple2Non(nonTuple)
-        kwargs.update({"org": nonTuple})
-        exec("non.nonEvents.{}.exe(self,**kwargs)".format(eventName))
+        non = self.tuple2non(non_tuple)  # noqa: F841
+        kwargs.update({"org": non_tuple})
+        exec("non.non_events.{}.exe(self,**kwargs)".format(event_name))
 
-    def getNonTuple(self, nonName: str, sideId: str = None):
+    def get_non_tuple(self, non_name: str, side_id: str = None):
         """给定一个non的名字，获取他的tuple。tuple可以理解为是该non的定位符。
 
         Args:
@@ -451,25 +464,25 @@ class Field:
         Returns:
             _type_: _description_
         """
-        if sideId == None:
-            for sideId, side in self.sides.items():
-                for nonIdx, non in enumerate(side.activeNons):
-                    if non.name == nonName:
-                        return (sideId, nonIdx)
-                for nonIdx, non in enumerate(side.notActiveNons):
-                    if non.name == nonName:
-                        return (sideId, nonIdx)
+        if side_id is None:
+            for side_id, side in self.sides.items():
+                for non_idx, non in enumerate(side.active_nons):
+                    if non.name == non_name:
+                        return (side_id, non_idx)
+                for non_idx, non in enumerate(side.not_active_nons):
+                    if non.name == non_name:
+                        return (side_id, non_idx)
             return False
         else:
-            for nonIdx, non in enumerate(self.sides[sideId].activeNons):
-                if non.name == nonName:
-                    return (sideId, nonIdx)
-            for nonIdx, non in enumerate(self.sides[sideId].notActiveNons):
-                if non.name == nonName:
-                    return (sideId, nonIdx)
+            for non_idx, non in enumerate(self.sides[side_id].active_nons):
+                if non.name == non_name:
+                    return (side_id, non_idx)
+            for non_idx, non in enumerate(self.sides[side_id].not_active_nons):
+                if non.name == non_name:
+                    return (side_id, non_idx)
             return False
 
-    def updateWeather(self, weather: str, reason: str, org: tuple[str, int], **kwargs):
+    def update_weather(self, weather: str, reason: str, org: tuple[str, int], **kwargs):
         # 尝试改变天气
         if self.weather == weather:
             self.log.append("天气没有任何变化……\n")
@@ -477,9 +490,9 @@ class Field:
         self.weather = weather
         self.log.append("由于[{}]天气变成了{}……\n".format(reason, self.weather))
         kwargs["weatherChangedOrg"] = org
-        self.eventTriggerAll("onWeatherChanged", **kwargs)
+        self.event_trigger_all("onWeatherChanged", **kwargs)
 
-    def tuple2Non(self, nonTuple: tuple[str, int], active: bool = True):
+    def tuple2non(self, non_tuple: tuple[str, int], active: bool = True):
         """给定一个non的tuple，返回该non对象。active用于指定他是否active
 
         Args:
@@ -490,10 +503,10 @@ class Field:
             _type_: _description_
         """
         if active:
-            return self.sides[nonTuple[0]].activeNons[nonTuple[1]]
-        return self.sides[nonTuple[0]].notActiveNons[nonTuple[1]]
+            return self.sides[non_tuple[0]].active_nons[non_tuple[1]]
+        return self.sides[non_tuple[0]].not_active_nons[non_tuple[1]]
 
-    def haveNonToSwitch(self, sideId: str):
+    def have_non_to_switch(self, side_id: str):
         """给定一个sideId，判断他是否有能够换上来的备战NON
 
         Args:
@@ -502,14 +515,14 @@ class Field:
         Returns:
             _type_: _description_
         """
-        for non in self.sides[sideId].notActiveNons:
+        for non in self.sides[side_id].not_active_nons:
             if non.hp > 0:
                 # print(non.name)
                 return True
         return False
 
 
-def getNonEntity(masterId: str, nonName: str) -> NON | bool:
+def get_non_entity(master_id: str, non_name: str) -> NON | bool:
     """从json获取NON实体
 
     Args:
@@ -519,8 +532,8 @@ def getNonEntity(masterId: str, nonName: str) -> NON | bool:
     Returns:
         NON | bool: _description_
     """
-    makeSureDir(baseNonFilePath + "{}/NON/".format(masterId))
-    path = baseNonFilePath + "{}/NON/{}.json".format(masterId, nonName)
+    make_sure_dir(BASE_NON_FILE_PATH + "{}/NON/".format(master_id))
+    path = BASE_NON_FILE_PATH + "{}/NON/{}.json".format(master_id, non_name)
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
             non = NON(**load(f))

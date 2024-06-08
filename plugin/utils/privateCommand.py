@@ -22,7 +22,7 @@ def unityPrivateReply(
 
     groupId = False
     for groupId_ in groupBattleDict:
-        if userId in groupBattleDict[groupId_].playerDict:
+        if userId in groupBattleDict[groupId_].player_dict:
             groupId = groupId_
             break
     if not groupId:
@@ -31,8 +31,8 @@ def unityPrivateReply(
 
     userCommand = message[4:].strip()
     if userCommand in ["0", "1", "2", "3", "4", "q"]:
-        if userId in groupBattleDict[groupId].playerCommandProcessors.keys():
-            groupBattleDict[groupId].addCommand(userId, userCommand)
+        if userId in groupBattleDict[groupId].player_command_processors.keys():
+            groupBattleDict[groupId].add_command(userId, userCommand)
         else:
             botSend.send("private", userId, "无需发出指令.")
 

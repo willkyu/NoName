@@ -1,24 +1,23 @@
-from .globalUtils import *
-from .nonEvents import *
+from dataclasses import dataclass
 
-# from sim.data.abilityData import abilityDataDictEn
+from .non_events import NonEventsObj
 
 
 @dataclass
 class Ability:
     name: str
-    cnName: str
+    name_cn: str
     desc: str
     # 是否影响天气，这个应该放在flag里
     # suppressWeather: bool
     # 一些布尔型flag
     flags: dict[str, bool]
 
-    addNonEvents: NonEventsObj
+    add_non_events: NonEventsObj
     # TODO
 
     def __str__(self) -> str:
-        return self.cnName
+        return self.name_cn
 
 
 @dataclass

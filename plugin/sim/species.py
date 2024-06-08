@@ -1,13 +1,14 @@
-from .globalUtils import *
-from .ability import Ability, SpeciesAbilities
+from dataclasses import dataclass
+from .ability import SpeciesAbilities
+from .global_utils import Type
 
 
 @dataclass
 class RateBuff:
-    springRateBuff: int
-    summerRateBuff: int
-    autumnRateBuff: int
-    winterRateBuff: int
+    spring_rate_buff: int
+    summer_rate_buff: int
+    autumn_rate_buff: int
+    winter_rate_buff: int
 
     # 时间段,int对应该时段最后时间点
     # class TimePeriod(Enum):
@@ -15,10 +16,10 @@ class RateBuff:
     #     NOON = "中午"
     #     AFTERNOON = "下午"
     #     NIGHT = "夜晚"
-    morningRateBuff: int
-    noonRateBuff: int
-    afternoonRateBuff: int
-    nightRateBuff: int
+    morning_rate_buff: int
+    noon_rate_buff: int
+    afternoon_rate_buff: int
+    night_rate_buff: int
 
 
 @dataclass
@@ -34,11 +35,11 @@ class SpeciesStrength:
 @dataclass
 class SpeciesData:
     name: str
-    nameCn: str
+    name_cn: str
     idex: int
     types: list[Type]
     abilities: SpeciesAbilities
-    speciesStrength: SpeciesStrength
+    species_strength: SpeciesStrength
 
     """
     出现率相关
@@ -48,20 +49,20 @@ class SpeciesData:
     """
     # 我觉得liveArea在这里可以不写，直接在area那里调用找这里的概率就行
     # liveArea: list[str]
-    moveLearnSet: dict[int, str] = None  # {learnAtLevel: moveName}
+    move_learn_set: dict[int, str] = None  # {learnAtLevel: moveName}
 
-    generRate: float | None = 0.5  # male rate
+    gender_rate: float | None = 0.5  # male rate
 
-    baseRateBuff: int = 5
+    base_rate_buff: int = 5
 
-    rateBuff: RateBuff = None
+    rate_buff: RateBuff = None
 
     # TODO
     pass
 
     def __post_init__(self):
-        if self.moveLearnSet is None:
-            self.moveLearnSet = {
+        if self.move_learn_set is None:
+            self.move_learn_set = {
                 1: "Tackle",
                 2: "Tackle",
                 3: "Tackle",
@@ -70,8 +71,8 @@ class SpeciesData:
 
 
 def getSpeciesRateBuff(species: SpeciesData):
-    species.rateBuff.springRateBuff
-    species.rateBuff.nightRateBuff
+    species.rate_buff.spring_rate_buff
+    species.rate_buff.night_rate_buff
     # do what you want
     res = 0
     pass

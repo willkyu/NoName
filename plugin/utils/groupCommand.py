@@ -1,6 +1,7 @@
 import OlivOS
 from .config import Config
-from ..sim.battle import *
+from ..sim.battle import Battle
+from ..sim.global_utils import battle_mode
 from html import unescape
 
 
@@ -27,22 +28,22 @@ def unityGroupReply(
         case "开始战斗":
             if len(groupCommand) < 2 and groupBattleDict.get(groupId, None) is None:
                 botSend.send(
-                    "group", groupId, "请选择战斗规则，可选项有:{}".format(battleMode)
+                    "group", groupId, "请选择战斗规则，可选项有:{}".format(battle_mode)
                 )
             if (
                 not groupBattleDict.get(groupId, False)
-                and groupCommand[1] in battleMode
+                and groupCommand[1] in battle_mode
             ) or (groupId in groupBattleDict and groupBattleDict[groupId].finished):
                 groupBattleDict[groupId] = Battle(
                     userId, groupId, groupCommand[1], botSend
                 )
             elif groupBattleDict.get(groupId, False):
-                addRes = groupBattleDict[groupId].addPlayer(userId)
-                if isinstance(addRes, dict):
-                    parserPatterns[groupId] = addRes
+                groupBattleDict[groupId].add_player(userId)
+                # if isinstance(addRes, dict):
+                #     parserPatterns[groupId] = addRes
             else:
                 botSend.send(
-                    "group", groupId, "无此战斗规则，可选项有:{}".format(battleMode)
+                    "group", groupId, "无此战斗规则，可选项有:{}".format(battle_mode)
                 )
         case "添加群":
             if userId in config.masterList:

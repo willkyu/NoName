@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Literal
 
-specialEffectClass = Callable | str | None  # 特殊效果，还没想好是函数还是字符串
+SpecialEffectClass = Callable | str | None  # 特殊效果，还没想好是函数还是字符串
 
 
 @dataclass
@@ -21,7 +21,7 @@ class ItemData:
     id: int
     # 招式名
     name: str
-    nameCn: str
+    name_cn: str
 
     # 稀有度
     rarity: Rarity
@@ -52,11 +52,11 @@ class ItemData:
     # description
     desc: str
     # 用于随机技能
-    canBeRolled: bool = False
+    can_be_rolled: bool = True
     # 一些特殊效果，还没想好是函数还是字符串
-    condition: specialEffectClass | None = None
+    condition: SpecialEffectClass | None = None
     # 基础伤害
-    basePower: int | None = None
+    base_power: int | None = None
     # 基础命中，如果为True就是必中技能，如果为False就是要实时计算的
     accuracy: bool | int = True
     # 先制度
@@ -64,7 +64,7 @@ class ItemData:
     # 一些布尔型flag，比如是否能突破保护
     flags: dict[str, bool] | None = None
     # 招式附加效果
-    secondary: specialEffectClass | None = None
+    secondary: SpecialEffectClass | None = None
     # 是否固定伤害值
     damage: None | int | Literal["level"] = None
 

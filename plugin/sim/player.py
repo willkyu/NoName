@@ -1,7 +1,15 @@
+import os
 import random
 import json
+from typing import Annotated
 
-from .globalUtils import *
+from .global_utils import (
+    create_new_config,
+    get_nickname,
+    make_sure_dir,
+    BASE_NON_FILE_PATH,
+    read_coin,
+)
 
 
 class Player:
@@ -10,20 +18,20 @@ class Player:
     path: str
     team: Annotated[list[str], "len must <= 6"] | None
     coin: int = 0
-    dreamCrystal: int
+    dream_crystal: int
 
-    def __init__(self, playerId: str) -> None:
-        self.id = playerId
+    def __init__(self, player_id: str) -> None:
+        self.id = player_id
         # print("getting name")
-        self.nickname = getNickname(self.id)
+        self.nickname = get_nickname(self.id)
         # print(self.nickname)
-        self.path = baseNonFilePath + "{}/".format(self.id)
-        makeSureDir(self.path)
+        self.path = BASE_NON_FILE_PATH + "{}/".format(self.id)
+        make_sure_dir(self.path)
         if not os.path.exists(self.path + "userConfig.json"):
-            createNewConfig(self.id)
+            create_new_config(self.id)
         with open(self.path + "userConfig.json", "r", encoding="utf-8") as f:
             self.__dict__.update(json.load(f))
-        self.coin = readCoin(self.id)
+        self.coin = read_coin(self.id)
         # print(self.__dict__)
         pass
 
@@ -33,7 +41,7 @@ class Player:
         )
 
     # 玩家获取新的NonBaby
-    def findNonBaby(self, msg: str):
+    def get_non(self, msg: str):
         """
         TODO 这里我觉得应该直接传入参数了，比如区域的str，
              指令直接在外部处理指令的地方判断。
@@ -42,28 +50,28 @@ class Player:
         if self.coin < 10:
             return "余额为:{" + str(self.coin) + "},余额不足请下次再来捏"
         elif msg == ".获取NonBaby":
-            nonBabyId = self.getRandomNonBabyId()
+            non_baby_id = self.get_random_non_id()
             self.coin += -10
-            return nonBabyId
+            return non_baby_id
         elif msg == ".获取沙漠NonBaby":
             if self.coin < 20:
                 return "余额为:[" + str(self.coin) + "],余额不足请下次再来捏"
-            nonBabyId = self.getRandomNonBabyId()
+            non_baby_id = self.get_random_non_id()
             self.coin += -20
             return
 
-    def getRandomNonBabyId(self, area: str):
+    def get_random_non_id(self, area: str):
         # 占位 做动态出现率
         return random.randint(1, 10000)
 
-    def judgeCoin(self, district: str):
+    def judge_coin(self, district: str):
         # 阶段收费
         if district == "":
             return self.coin > 10
-        elif district == Area.DESERT:
+        elif district == "沙漠":
             return self.coin > 20
 
-    def updateStatus(self):
+    def update_status(self):
         # 将JSON数据写入文件
         with open(self.path, "w+", encoding="utf-8") as file:
             json.dump(self, file, indent=4, ensure_ascii=False)

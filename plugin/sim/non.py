@@ -1,53 +1,69 @@
-import math
+from __future__ import annotations
+from dataclasses import dataclass
+from typing import Literal
+from json import dump, load
+import os
 
-from .globalUtils import *
+from .global_utils import (
+    EVs,
+    IVs,
+    LevelRange,
+    StatLevel,
+    StatValue,
+    Type,
+    get_move_en,
+    make_sure_dir,
+    stat_list,
+    BASE_NON_FILE_PATH,
+)
+from .move import MoveData
 from .species import SpeciesData
 from .ability import Ability
 from .condition import Condition
-from .data.abilityData import abilityDataDictEn
-from .nonEvents import NonEventsObj
-from .data.speciesData import speciesDataDictEn
+from .data.ability_data import ability_data_dict_en
+from .non_events import NonEventsObj
+from .data.species_data import species_data_dict_en
 
 
 @dataclass
 class MoveSlot:
     name: str
     id: str = None
-    nameCn: str = None
+    name_cn: str = None
     move: MoveData = None
     pp: int = None
-    maxpp: int = None
+    pp_max: int = None
     used: bool = False
     target: str | None = None
     disabled: bool | str = False
-    disabledSource: str | None = None
+    disabled_source: str | None = None
 
     def __post_init__(self):
         if self.name is not None:
-            self.move = getMoveEn(self.name)
+            self.move = get_move_en(self.name)
             self.id = self.move.id
-            self.nameCn = self.move.nameCn
+            self.name_cn = self.move.name_cn
             self.pp = self.move.pp
-            self.maxpp = self.pp
+            self.pp_max = self.pp
 
 
 @dataclass
 class NonTempBattleStatus:
-    lastItem: str = ""
-    usedItemThisTurn: bool = False
+    last_item: str = ""
+    used_item_this_turn: bool = False
 
 
 @dataclass
 class NON(object):
     name: str
-    masterId: str
+    master_id: str
     species: SpeciesData | str
     level: LevelRange
     gender: Literal["M", "F", "N"]
-    inBattle: str  # should be '' if not in battle
+    in_battle: str  # should be '' if not in battle
     ability: Ability | str
 
-    moveSlots: dict[str, MoveSlot]  # {moveNameEn, MoveSlot}
+    move_slots: dict[str, MoveSlot]  # {moveNameEn, MoveSlot}
     ivs: IVs
     evs: EVs
 
@@ -55,88 +71,87 @@ class NON(object):
     conditions: dict[str, Condition] = None
     stat: StatValue = None
     hp: int = 0
-    hpmax: int = 0
-    battleStatus: NonTempBattleStatus | None = None
-    nonEvents: NonEventsObj = None
+    hp_max: int = 0
+    battle_status: NonTempBattleStatus | None = None
+    non_events: NonEventsObj = None
     item: str = None
-    statsLevel: StatLevel = None
+    stats_level: StatLevel = None
 
     def __post_init__(self):
 
-        self.toEntity()
-        if self.stat == None:
-            self.calculateStat()
+        self.to_entity()
+        if self.stat is None:
+            self.calculate_stat()
 
-    def hookNonEvents(self):
-        for att in self.ability.addNonEvents.__dict__.keys():
-            exec("self.nonEvents.{}+=self.ability.addNonEvents.{}".format(att, att))
+    def hook_non_events(self):
+        for att in self.ability.add_non_events.__dict__.keys():
+            exec("self.non_events.{}+=self.ability.add_non_events.{}".format(att, att))
 
-    def calculateStat(self):
-        HP: int
-        statDict = {}
-        for stat in statList:
-            self.species.speciesStrength.HP
+    def calculate_stat(self):
+        stat_dict = {}
+        for stat in stat_list:
+            self.species.species_strength.HP
             self.ivs.HP
             self.evs.HP
-            statDict[stat] = eval(
-                "math.floor({}+(self.level*(2*self.species.speciesStrength.{}+self.ivs.{}+math.sqrt(self.evs.{}) / 8))/100)".format(
+            stat_dict[stat] = eval(
+                "math.floor({}+(self.level*(2*self.species.species_strength.{}+self.ivs.{}+math.sqrt(self.evs.{}) / 8))/100)".format(
                     10 if stat == "HP" else 5, stat, stat, stat
                 )
             )
-        self.hpmax = statDict["HP"]
-        self.hp = statDict["HP"]
-        self.stat = StatValue(**{k: v for k, v in statDict.items() if k != "HP"})
+        self.hp_max = stat_dict["HP"]
+        self.hp = stat_dict["HP"]
+        self.stat = StatValue(**{k: v for k, v in stat_dict.items() if k != "HP"})
 
     def save(self):
-        self.dump2Json()
+        self.dump2json()
 
-    def dump2Json(self, test=False):
+    def dump2json(self, test=False):
         if not test:
-            self.toStr()
-        path = baseNonFilePath + "{}/NON/{}.json".format(self.masterId, self.name)
+            self.to_str()
+        path = BASE_NON_FILE_PATH + "{}/NON/{}.json".format(self.master_id, self.name)
         if self.name == "":
-            path = baseNonFilePath + "{}/TEMP.json".format(self.masterId)
+            path = BASE_NON_FILE_PATH + "{}/TEMP.json".format(self.master_id)
         if test:
             path = "./"
 
-        makeSureDir(path)
+        make_sure_dir(path)
         # print(os.path.abspath(path))
         with open(path, "w+", encoding="utf-8") as f:
             dump(self, f, default=lambda obj: obj.__dict__, ensure_ascii=False)
-        self.toEntity()
+        self.to_entity()
 
-    def toEntity(self):
-        self.statsLevel = StatLevel()
-        self.nonEvents = NonEventsObj()
-        self.battleStatus = NonTempBattleStatus()
+    def to_entity(self):
+        self.stats_level = StatLevel()
+        self.non_events = NonEventsObj()
+        self.battle_status = NonTempBattleStatus()
         self.conditions = {}
         self.ivs = IVs(**self.ivs)
         self.evs = EVs(**self.evs)
-        self.species = speciesDataDictEn[self.species]
-        self.ability = abilityDataDictEn[self.ability]
+        self.species = species_data_dict_en[self.species]
+        self.ability = ability_data_dict_en[self.ability]
         if self.stat is not None:
             self.stat = StatValue(**self.stat)
         if self.types is None:
             self.types = self.species.types
-        for k in self.moveSlots.keys():
-            self.moveSlots[k] = MoveSlot(k)
-        self.hookNonEvents()
+        for k in self.move_slots.keys():
+            self.move_slots[k] = MoveSlot(k)
+        self.hook_non_events()
 
-    def toStr(self):
+    def to_str(self):
         self.ivs = self.ivs.__dict__
         self.evs = self.evs.__dict__
-        for k in self.moveSlots.keys():
-            self.moveSlots[k] = {"name": k}
-        self.statsLevel = None
+        for k in self.move_slots.keys():
+            self.move_slots[k] = {"name": k}
+        self.stats_level = None
         self.species = self.species.name
         self.ability = self.ability.name
-        self.nonEvents = None
-        self.battleStatus = None
+        self.non_events = None
+        self.battle_status = None
         self.conditions = None
 
-    def loadFromJson(self, masterId: str, nonName: str):
+    def load_from_json(self, master_id: str, non_name: str):
         # 可能用不上，直接在外部定义一个从json读类的就可以
-        path = baseNonFilePath + "{}/NON/{}.json".format(masterId, nonName)
+        path = BASE_NON_FILE_PATH + "{}/NON/{}.json".format(master_id, non_name)
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
                 self.__dict__.update(load(f))
@@ -145,7 +160,7 @@ class NON(object):
             return False
 
 
-def initNonFromSpecies(species: SpeciesData) -> NON:
+def init_non_from_species(species: SpeciesData) -> NON:
     """调用完该方法请让玩家取名！默认名字为空字符串""
         此外masterId也需要绑定
 
@@ -156,22 +171,21 @@ def initNonFromSpecies(species: SpeciesData) -> NON:
         NON: _description_
     """
     # TODO
-    import random
 
     return NON(
         name="",
-        masterId="",
+        master_id="",
         species=species.name,
         level=5,
         gender="N",
-        inBattle="",
+        in_battle="",
         ability="Hello World",
-        moveSlots={},
+        move_slots={},
         ivs=IVs().__dict__,
         evs=EVs().__dict__,
     )
 
 
-def initMoveSlot(moveData: MoveData) -> MoveSlot:
+def init_move_slot(move_data: MoveData) -> MoveSlot:
     # TODO
-    return MoveSlot(name="测试NON")
+    return MoveSlot(name="Tackle")

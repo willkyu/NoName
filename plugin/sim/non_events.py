@@ -1,0 +1,45 @@
+from __future__ import annotations
+from typing import Callable, TYPE_CHECKING
+from dataclasses import dataclass
+from functools import partial
+
+if TYPE_CHECKING:
+    from sim.field import Field
+
+
+@dataclass
+class NonEvent:
+    reason: str = None
+    exe: Callable[[Field, dict[str, object]], None] = None
+
+    def __post_init__(self):
+        if self.exe is None:
+            self.exe = self.default_exe
+        else:
+            self.exe = partial(self.exe, self)
+
+    def default_exe(self, field: Field, **kwargs):
+        pass
+
+
+class NonEventList(list):
+    def exe(self, field: Field, **kwargs):
+        for i in range(len(self)):
+            super().__getitem__(i).exe(field, **kwargs)
+
+
+@dataclass
+class NonEventsObj:
+    on_active_once: NonEventList = None
+    before_switch: NonEventList = None
+    after_switch: NonEventList = None
+    on_weather_changed: NonEventList = None
+    end_of_turn: NonEventList = None
+    start_of_turn: NonEventList = None
+    on_get: NonEventList = None
+
+    def __post_init__(self) -> None:
+        for k in self.__dict__.keys():
+            if self.__getattribute__(k) is None:
+                self.__setattr__(k, NonEventList())
+        pass
