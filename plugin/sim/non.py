@@ -19,10 +19,12 @@ from .global_utils import (
 from .move import MoveData
 from .species import SpeciesData
 from .ability import Ability
+from .item import ItemData
 from .condition import Condition
-from .data.ability_data import ability_data_dict_en
 from .non_events import NonEventsObj
+from .data.ability_data import ability_data_dict_en
 from .data.species_data import species_data_dict_en
+from .data.item_data import item_data_dict_en
 
 
 @dataclass
@@ -74,7 +76,7 @@ class NON(object):
     hp_max: int = 0
     battle_status: NonTempBattleStatus | None = None
     non_events: NonEventsObj = None
-    item: str = None
+    item: ItemData | str = None
     stats_level: StatLevel = None
 
     def __post_init__(self):
@@ -85,7 +87,10 @@ class NON(object):
 
     def hook_non_events(self):
         for att in self.ability.add_non_events.__dict__.keys():
-            exec("self.non_events.{}+=self.ability.add_non_events.{}".format(att, att))
+            exec(f"self.non_events.{att}+=self.ability.add_non_events.{att}")
+        if self.item is not None:
+            for att in self.ability.add_non_events.__dict__.keys():
+                exec(f"self.non_events.{att}+=self.item.add_non_events.{att}")
 
     def calculate_stat(self):
         stat_dict = {}
@@ -94,9 +99,7 @@ class NON(object):
             self.ivs.HP
             self.evs.HP
             stat_dict[stat] = eval(
-                "math.floor({}+(self.level*(2*self.species.species_strength.{}+self.ivs.{}+math.sqrt(self.evs.{}) / 8))/100)".format(
-                    10 if stat == "HP" else 5, stat, stat, stat
-                )
+                f"math.floor({10 if stat == 'HP' else 5}+(self.level*(2*self.species.species_strength.{stat}+self.ivs.{stat}+math.sqrt(self.evs.{stat}) / 8))/100)"
             )
         self.hp_max = stat_dict["HP"]
         self.hp = stat_dict["HP"]
@@ -129,6 +132,7 @@ class NON(object):
         self.evs = EVs(**self.evs)
         self.species = species_data_dict_en[self.species]
         self.ability = ability_data_dict_en[self.ability]
+        self.item = item_data_dict_en[self.item] if self.item is not None else None
         if self.stat is not None:
             self.stat = StatValue(**self.stat)
         if self.types is None:
@@ -145,6 +149,7 @@ class NON(object):
         self.stats_level = None
         self.species = self.species.name
         self.ability = self.ability.name
+        self.item = self.item.name if self.item is not None else None
         self.non_events = None
         self.battle_status = None
         self.conditions = None

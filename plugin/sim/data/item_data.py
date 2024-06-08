@@ -1,82 +1,29 @@
+from __future__ import annotations
 from ..item import ItemData, Rarity
+from ..non_events import NonEvent, NonEventsObj
+from .item_function import ItemFunctions
 
-item_data_white: list[ItemData] = [
+"""稀有度全部合并为在一起"""
+
+item_data_base: list[ItemData] = [
     ItemData(
         id=1,
-        name="Tackle",
-        name_cn="撞击",
+        name="Infinite Pitaya",
+        name_cn="无限火龙果",
         rarity=Rarity.WHITE,
-        category="Physical",
-        type="Normal",
-        target="normal",
-        base_power=40,
-        accuracy=100,
-        desc="使用全身的力气撞击目标。",
-    ),
-    ItemData(
-        id=2,
-        name="Ember",
-        name_cn="火花",
-        pp=30,
-        category="Magical",
-        type="Fire",
-        target="normal",
-        base_power=40,
-        accuracy=100,
-        desc="向目标发射小小的火苗。有时会令目标烧伤。",
-        # 怎么导致异常状态呢？函数还是变量
+        desc="这是什么？火龙果，吃一口。这是什么？火龙果，吃一口。",
+        add_non_events=NonEventsObj(
+            on_hit=[
+                NonEvent(reason="无限火龙果", exe=ItemFunctions.infinite_pitaya_on_hit)
+            ]
+        ),
     ),
 ]
 
-item_data_blue: list[ItemData] = [
-    ItemData(
-        id=1,
-        name="Tackle",
-        name_cn="撞击",
-        rarity=Rarity.BLUE,
-        category="Physical",
-        type="Normal",
-        target="normal",
-        base_power=40,
-        accuracy=100,
-        desc="使用全身的力气撞击目标。",
-    )
-]
+item_data_dict_en: dict[str, ItemData] = {
+    item_data.name: item_data for item_data in item_data_base
+}
 
-item_data_purple: list[ItemData] = [
-    ItemData(
-        id=1,
-        name="Tackle",
-        name_cn="撞击",
-        rarity=Rarity.PURPLE,
-        category="Physical",
-        type="Normal",
-        target="normal",
-        base_power=40,
-        accuracy=100,
-        desc="使用全身的力气撞击目标。",
-    )
-]
-
-item_data_gold: list[ItemData] = [
-    ItemData(
-        id=1,
-        name="Tackle",
-        name_cn="撞击",
-        rarity=Rarity.GOLD,
-        category="Physical",
-        type="Normal",
-        target="normal",
-        base_power=40,
-        accuracy=100,
-        desc="使用全身的力气撞击目标。",
-    )
-]
-
-itemData = item_data_white + item_data_blue + item_data_purple + item_data_gold
-
-itemDataDictEn: dict[str, ItemData] = {itemData.name: itemData for itemData in itemData}
-
-itemDataDictCn: dict[str, ItemData] = {
-    itemData.name_cn: itemData for itemData in itemData
+item_data_dict_cn: dict[str, ItemData] = {
+    item_data.name_cn: item_data for item_data in item_data_base
 }

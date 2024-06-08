@@ -281,6 +281,7 @@ class Field:
                 )
             )
             self.make_damage(target_tuple, damage)
+            self.event_trigger_single("on_hit", target_tuple)
         else:
             # 辅助招式
             pass
@@ -522,7 +523,7 @@ class Field:
         return False
 
 
-def get_non_entity(master_id: str, non_name: str) -> NON | bool:
+def get_non_entity(master_id: str, non_name: str = "") -> NON | bool:
     """从json获取NON实体
 
     Args:
@@ -534,6 +535,8 @@ def get_non_entity(master_id: str, non_name: str) -> NON | bool:
     """
     make_sure_dir(BASE_NON_FILE_PATH + "{}/NON/".format(master_id))
     path = BASE_NON_FILE_PATH + "{}/NON/{}.json".format(master_id, non_name)
+    if non_name == "":
+        path = BASE_NON_FILE_PATH + "{}/TEMP.json".format(master_id)
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
             non = NON(**load(f))

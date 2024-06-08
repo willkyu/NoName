@@ -1,7 +1,9 @@
 import OlivOS
-from .utils.config import *
-from .utils.groupCommand import unityGroupReply
-from .utils.privateCommand import unityPrivateReply
+import os
+
+from .utils.config import Config
+from .utils.group_cmd import unity_group_reply
+from .utils.private_cmd import unity_private_reply
 from .sim.battle import Battle
 
 # activeGroupList = ["957736515"]
@@ -9,25 +11,25 @@ from .sim.battle import Battle
 
 config = Config()
 
-botHash = "19e44f7870aaaa4d2cb384c92482ab79"
-pluginName = "NoN"
-botSend = None
+BOT_HASH = "19e44f7870aaaa4d2cb384c92482ab79"
+PLUGIN_NAME = "NoN"
+bot_send = None
 
-groupBattleDict: dict[str, Battle] = {}
+group_battle_dict: dict[str, Battle] = {}
 
 
-def makeSureDir(path: str) -> None:
+def make_sure_dir(path: str) -> None:
     if not os.path.exists(path):
         os.mkdir(path)
 
 
-def initmsg(Proc):
-    global botHash
-    global botSend
-    global pluginName
-    botSend = OlivOS.API.Event(
+def init_msg(Proc):
+    global BOT_HASH
+    global bot_send
+    global PLUGIN_NAME
+    bot_send = OlivOS.API.Event(
         OlivOS.contentAPI.fake_sdk_event(
-            bot_info=Proc.Proc_data["bot_info_dict"][botHash], fakename=pluginName
+            bot_info=Proc.Proc_data["bot_info_dict"][BOT_HASH], fakename=PLUGIN_NAME
         ),
         Proc.log,
     )
@@ -35,17 +37,17 @@ def initmsg(Proc):
 
 class Event(object):
     def init(plugin_event, Proc):
-        initmsg(Proc)
+        init_msg(Proc)
         pass
 
     def private_message(plugin_event, Proc):
-        global botSend
-        global groupBattleDict
-        unityPrivateReply(plugin_event, config, botSend, groupBattleDict)
+        global bot_send
+        global group_battle_dict
+        unity_private_reply(plugin_event, config, bot_send, group_battle_dict)
         pass
 
     def group_message(plugin_event, Proc):
-        global botSend
-        global groupBattleDict
-        unityGroupReply(plugin_event, config, botSend, groupBattleDict)
+        global bot_send
+        global group_battle_dict
+        unity_group_reply(plugin_event, config, bot_send, group_battle_dict)
         pass

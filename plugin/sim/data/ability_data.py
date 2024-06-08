@@ -1,18 +1,18 @@
 from __future__ import annotations
 from ..ability import Ability
 from ..non_events import NonEvent, NonEventsObj
-from .non_event_functions import NonEventFunctions
+from .ability_function import AbilityFunctions
 
 
 ability_data_base: list[Ability] = [
     Ability(
+        id=1,
         name="Hello World",
         name_cn="你好世界",
         desc="出场时所有队友攻击等级+1",
-        flags={},
         add_non_events=NonEventsObj(
             on_active_once=[
-                NonEvent(reason="Hello World", exe=NonEventFunctions.hello_world)
+                NonEvent(reason="Hello World", exe=AbilityFunctions.hello_world)
             ]
         ),
     )

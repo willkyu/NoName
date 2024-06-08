@@ -37,6 +37,7 @@ class NonEventsObj:
     end_of_turn: NonEventList = None
     start_of_turn: NonEventList = None
     on_get: NonEventList = None
+    on_hit: NonEventList = None
 
     def __post_init__(self) -> None:
         for k in self.__dict__.keys():

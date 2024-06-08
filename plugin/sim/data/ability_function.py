@@ -8,8 +8,8 @@ if TYPE_CHECKING:
     from sim.field import Field
 
 
-class NonEventFunctions:
-    """异常状态、特性、物品效果函数均写在这里"""
+class AbilityFunctions:
+    """特性效果函数均写在这里"""
 
     @classmethod
     def hello_world(cls, self: NonEvent, field: Field, **kwargs):

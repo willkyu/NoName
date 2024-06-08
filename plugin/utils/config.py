@@ -2,45 +2,45 @@ import json
 import os
 from typing import Literal
 
-baseDataFilePath = "./plugin/data/NoName/"
+BASE_DATA_FILE_PATH = "./plugin/data/NoName/"
 
 
 class Config:
-    activeGroupList: list[str]
-    masterList: list[str]
+    active_group_list: list[str]
+    master_list: list[str]
 
     def __init__(self) -> None:
         # global baseDataFilePath
-        if not os.path.exists(baseDataFilePath + "config.json"):
-            self.initConfigFile()
-        with open(baseDataFilePath + "config.json", "r", encoding="utf-8") as f:
+        if not os.path.exists(BASE_DATA_FILE_PATH + "config.json"):
+            self.init_config_file()
+        with open(BASE_DATA_FILE_PATH + "config.json", "r", encoding="utf-8") as f:
             self.__dict__.update(json.load(f))
             print(self.__dict__)
 
-    def initConfigFile(self):
-        self.activeGroupList = ["957736515"]
-        self.masterList = ["496373158"]
-        self.writeConfig()
+    def init_config_file(self):
+        self.active_group_list = ["957736515"]
+        self.master_list = ["496373158"]
+        self.write_config()
 
-    def writeConfig(self):
-        with open(baseDataFilePath + "config.json", "w+", encoding="utf-8") as f:
+    def write_config(self):
+        with open(BASE_DATA_FILE_PATH + "config.json", "w+", encoding="utf-8") as f:
             json.dump(self, f, default=lambda obj: obj.__dict__, ensure_ascii=False)
 
-    def editConfig(
-        self, ID: str, mode: Literal["group", "master"], addMode: bool = True
+    def edit_config(
+        self, id: str, mode: Literal["group", "master"], add_mode: bool = True
     ):
-        if addMode:
-            if mode == "group" and ID not in self.activeGroupList:
-                self.activeGroupList.append(ID)
-            elif mode == "master" and ID not in self.masterList:
-                self.masterList.append(ID)
+        if add_mode:
+            if mode == "group" and id not in self.active_group_list:
+                self.active_group_list.append(id)
+            elif mode == "master" and id not in self.master_list:
+                self.master_list.append(id)
             else:
                 return
         else:
-            if mode == "group" and ID in self.activeGroupList:
-                self.activeGroupList.remove[ID]
-            elif mode == "master" and ID in self.masterList:
-                self.masterList.remove[ID]
+            if mode == "group" and id in self.active_group_list:
+                self.active_group_list.remove[id]
+            elif mode == "master" and id in self.master_list:
+                self.master_list.remove[id]
             else:
                 return
-        self.writeConfig()
+        self.write_config()
