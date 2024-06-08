@@ -36,11 +36,11 @@ def gacha_cmd(
     mode = "private" if group_id == "" else "group"
     if command_list[0].lower() != "gacha":
         return
-    if len(command_list) == 1 or command_list[1] not in area_data.items():
+    if len(command_list) == 1 or command_list[1] not in area_data.keys():
         bot.send(
             mode,
             user_id if mode == "private" else group_id,
-            message=f"请输入AREA:\n{list(area_data.items())}",
+            message=f"请输入AREA:\n{list(area_data.keys())}",
         )
         return
     if _check_temp_non(user_id):
@@ -50,13 +50,19 @@ def gacha_cmd(
             user_id if mode == "private" else group_id,
             message=f"暂存区中有未命名的NON({species_name})\n请先使用.non name 【NAME】对其命名.",
         )
+        return
     player = Player(user_id)
     bot.send(
         mode,
         user_id if mode == "private" else group_id,
         message=str(player),
     )
-    gacha(player, command_list[1])
+    gacha_res = gacha(player, command_list[1])
+    bot.send(
+        mode,
+        user_id if mode == "private" else group_id,
+        message=f"{user_id}获得了{gacha_res}.",
+    )
 
 
 def name_cmd(

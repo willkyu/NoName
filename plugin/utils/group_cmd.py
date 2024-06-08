@@ -1,6 +1,7 @@
 import OlivOS
 from html import unescape
 
+from .help_cmd import help_cmd
 from .common_cmd import config_update, gacha_cmd, name_cmd
 from .config import Config
 from ..sim.battle import Battle
@@ -56,3 +57,4 @@ def unity_group_reply(
 
     gacha_cmd(group_command, user_id, bot_send, group_id)
     name_cmd(group_command, user_id, bot_send, group_id)
+    help_cmd(group_command, user_id, bot_send, group_id)

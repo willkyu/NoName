@@ -1,6 +1,7 @@
 import OlivOS
 from html import unescape
 
+from .help_cmd import help_cmd
 from .common_cmd import gacha_cmd, name_cmd, config_update
 from .config import Config
 from ..sim.battle import Battle
@@ -45,3 +46,4 @@ def unity_private_reply(
 
     gacha_cmd(user_command, user_id, bot_send)
     name_cmd(user_command, user_id, bot_send)
+    help_cmd(user_command, user_id, bot_send)
