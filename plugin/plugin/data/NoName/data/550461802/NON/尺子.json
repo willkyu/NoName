@@ -1,0 +1,41 @@
+{
+    "name": "尺子",
+    "master_id": "550461802",
+    "species": "NillKyu",
+    "level": 5,
+    "gender": "N",
+    "in_battle": "",
+    "ability": "Hello World",
+    "move_slots": {
+        "Tackle": {
+            "name": "Tackle"
+        }
+    },
+    "ivs": {
+        "HP": 0,
+        "ATK": 0,
+        "DEF": 0,
+        "SPA": 0,
+        "SPD": 0,
+        "SPE": 0
+    },
+    "evs": {
+        "HP": 0,
+        "ATK": 0,
+        "DEF": 0,
+        "SPA": 0,
+        "SPD": 0,
+        "SPE": 0
+    },
+    "stat": {
+        "ATK": 15,
+        "DEF": 15,
+        "SPA": 15,
+        "SPD": 15,
+        "SPE": 15
+    },
+    "hp": 20,
+    "hp_max": 20,
+    "non_events": {},
+    "item": "Infinite Pitaya"
+}

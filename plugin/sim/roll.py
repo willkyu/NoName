@@ -66,8 +66,11 @@ def __getNon(species: SpeciesData, player: Player):
 
 def __get_random_items(player: Player):
     # 物品分稀有度等级，按照稀有度排序，和为1，生成0-1随机浮点看落在哪个区间
-    rarity_rate_list = [Rarity[rarity].value for rarity in rarity_list]
-    rarity = random.choices(rarity_list, rarity_rate_list)[0]
+    rarity_list_except_empty = [
+        rarity for rarity in rarity_list if len(item_data_rarity[rarity]) > 0
+    ]
+    rarity_rate_list = [Rarity[rarity].value for rarity in rarity_list_except_empty]
+    rarity = random.choices(rarity_list_except_empty, rarity_rate_list)[0]
     item = random.choice(item_data_rarity[rarity])
 
     # todo 更加item归属层

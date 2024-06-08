@@ -81,7 +81,7 @@ class Player:
     def update_status(self):
         self.bag = dict(**self.bag)
         # 将JSON数据写入文件
-        with open(self.path, "w+", encoding="utf-8") as file:
+        with open(self.path + "userConfig.json", "w+", encoding="utf-8") as file:
             json.dump(self, file, indent=4, ensure_ascii=False)
         self.bag = defaultdict(int, self.bag)
 
