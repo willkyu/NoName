@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Callable, TYPE_CHECKING
 from dataclasses import dataclass
 from functools import partial
+from collections import UserList
 
 if TYPE_CHECKING:
     from sim.field import Field
@@ -22,10 +23,12 @@ class NonEvent:
         pass
 
 
-class NonEventList(list):
+class NonEventList(UserList):
     def exe(self, field: Field, **kwargs):
-        for i in range(len(self)):
-            super().__getitem__(i).exe(field, **kwargs)
+        # for i in range(len(self)):
+            # super().__getitem__(i).exe(field, **kwargs)
+        for event in self:
+            event.exe(field, **kwargs)
 
 
 @dataclass
