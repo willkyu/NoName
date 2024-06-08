@@ -2,17 +2,12 @@ import random
 
 from .global_utils import hidden_ability_available, stat_list
 
-from .item import Rarity
+from .item import Rarity, rarity_list
 from .player import Player
 from .species import SpeciesData
 import datetime
 from .data.species_data import species_data_dict_cn
-from .data.item_data import (
-    item_data_white,
-    item_data_blue,
-    item_data_purple,
-    item_data_gold,
-)
+from .data.item_data import item_data_rarity
 from .non import init_non_from_species, MoveSlot, IVs
 from .data.living_area import area_data
 
@@ -34,7 +29,7 @@ def gacha(player: Player, area: str):
     if random.random() <= ITEAMRATE:
         return __get_random_items(player)
 
-    got_non_name_cn = random.choices(species_name_cn_list, species_rate_buff_list)
+    got_non_name_cn = random.choices(species_name_cn_list, species_rate_buff_list)[0]
     # 获得Non
     return __getNon(species_data_dict_cn[got_non_name_cn], player)
 
@@ -45,9 +40,10 @@ def __getNon(species: SpeciesData, player: Player):
     # 设置随机ability
     non.ability = species.abilities.__getattribute__(
         random.choice(
-            list(species.abilities.__dict__.keys()) - ["H"]
-            if hidden_ability_available
-            else []
+            list(
+                set(species.abilities.__dict__.keys())
+                - (set("H") if hidden_ability_available else set())
+            )
         )
     )
     non.gender = (
@@ -65,25 +61,18 @@ def __getNon(species: SpeciesData, player: Player):
 
     non.master_id = player.id
     non.save()  # 这时候会保存在暂存区，等待命名
+    return f"NON(Lv.{non.level}): {non.species.name}"
 
 
 def __get_random_items(player: Player):
     # 物品分稀有度等级，按照稀有度排序，和为1，生成0-1随机浮点看落在哪个区间
-    random_result = random.random()
-    if 0 <= random_result < Rarity.WHITE:
-        item = random.choice(item_data_white)
-    elif Rarity.WHITE <= random_result < Rarity.WHITE + Rarity.BLUE:
-        item = random.choice(item_data_blue)
-    elif (
-        Rarity.WHITE + Rarity.BLUE
-        <= random_result
-        < Rarity.WHITE + Rarity.BLUE + Rarity.PURPLE
-    ):
-        item = random.choice(item_data_purple)
-    else:
-        item = random.choice(item_data_gold)
+    rarity_rate_list = [Rarity[rarity].value for rarity in rarity_list]
+    rarity = random.choices(rarity_list, rarity_rate_list)[0]
+    item = random.choice(item_data_rarity[rarity])
+
     # todo 更加item归属层
-    item.mas
+    player.set_item(item, player.bag[item] + 1)
+    return f"物品({rarity}): {item}"
 
 
 # 获取总权重

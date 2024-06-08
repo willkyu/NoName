@@ -2,6 +2,7 @@ import os
 import random
 import json
 from typing import Annotated
+from collections import defaultdict
 
 from .global_utils import (
     create_new_config,
@@ -17,11 +18,13 @@ class Player:
     nickname: str
     path: str
     team: Annotated[list[str], "len must <= 6"] | None
+    dream_crystal: int = 0
     coin: int = 0
-    dream_crystal: int
+    bag: dict[str:int] = None
 
     def __init__(self, player_id: str) -> None:
         self.id = player_id
+        self.bag = None
         # print("getting name")
         self.nickname = get_nickname(self.id)
         # print(self.nickname)
@@ -33,11 +36,15 @@ class Player:
             self.__dict__.update(json.load(f))
         self.coin = read_coin(self.id)
         # print(self.__dict__)
+
+        if self.bag is None:
+            self.bag = {}
+        self.bag = defaultdict(int, self.bag)
         pass
 
     def __str__(self) -> str:
         return "————————————\n▼ ID[{}]身份认证成功.\n▼ 以[{}]进行登入.\n┣———————————\n│ 灵魂：{}\n│ DreamCrystal：{}\n————————————".format(
-            self.id, self.nickname, self.coin, self.dreamCrystal
+            self.id, self.nickname, self.coin, self.dream_crystal
         )
 
     # 玩家获取新的NonBaby
@@ -72,6 +79,12 @@ class Player:
             return self.coin > 20
 
     def update_status(self):
+        self.bag = dict(**self.bag)
         # 将JSON数据写入文件
         with open(self.path, "w+", encoding="utf-8") as file:
             json.dump(self, file, indent=4, ensure_ascii=False)
+        self.bag = defaultdict(int, self.bag)
+
+    def set_item(self, item: str, count):
+        self.bag[item] = count
+        self.update_status()

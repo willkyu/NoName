@@ -7,13 +7,6 @@ from .non_events import NonEventsObj
 SpecialEffectClass = Callable | str | None  # 特殊效果，还没想好是函数还是字符串
 
 
-# @dataclass
-# class Rarity():
-#     WHITE = 0.5
-#     BLUE = 0.3
-#     PURPLE = 0.15
-#     GOLD = 0.05
-
 class Rarity(Enum):
     WHITE = 0.5
     BLUE = 0.3
@@ -21,11 +14,14 @@ class Rarity(Enum):
     GOLD = 0.05
 
 
+rarity_list = list(Rarity.__members__.keys())
+
+
 @dataclass
 class ItemData:
     """和ability差不多"""
 
-    id: int 
+    id: int
     # 招式名
     name: str
     name_cn: str
@@ -38,7 +34,7 @@ class ItemData:
     consumable: bool = False
     # 一些布尔型flag
     flags: dict[str, bool] = field(default_factory=dict)
-    
+
     add_non_events: NonEventsObj = field(default_factory=NonEventsObj)
 
     # # TODO

@@ -11,6 +11,8 @@ from .data.move_data import move_data_dict_cn, move_data_dict_en
 
 BattleMode = Literal["single", "double", "chaos4"]
 battle_mode = ["single", "double", "chaos4"]
+battle_mode_dsc = ["单打", "双打", "四人乱战"]
+
 
 BASE_NON_FILE_PATH = "./plugin/data/NoName/data/"
 
@@ -66,6 +68,7 @@ def create_new_config(player_id: str):
         "path": BASE_NON_FILE_PATH + "{}/".format(player_id),
         "team": [],
         "dream_crystal": 0,
+        "bag": {},
     }
     make_sure_dir(newdict["path"])
     with open(newdict["path"] + "userConfig.json", "w+", encoding="utf-8") as f:

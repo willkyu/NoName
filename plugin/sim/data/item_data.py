@@ -1,5 +1,5 @@
 from __future__ import annotations
-from ..item import ItemData, Rarity
+from ..item import ItemData, rarity_list
 from ..non_events import NonEvent, NonEventsObj
 from .item_function import ItemFunctions
 
@@ -10,7 +10,7 @@ item_data_base: list[ItemData] = [
         id=1,
         name="Infinite Pitaya",
         name_cn="无限火龙果",
-        rarity=Rarity.WHITE,
+        rarity="WHITE",
         desc="这是什么？火龙果，吃一口。这是什么？火龙果，吃一口。",
         add_non_events=NonEventsObj(
             on_hit=[
@@ -26,4 +26,11 @@ item_data_dict_en: dict[str, ItemData] = {
 
 item_data_dict_cn: dict[str, ItemData] = {
     item_data.name_cn: item_data for item_data in item_data_base
+}
+
+item_data_rarity: dict[str, ItemData] = {
+    rarity: [
+        item_data.name for item_data in item_data_base if item_data.rarity == rarity
+    ]
+    for rarity in rarity_list
 }

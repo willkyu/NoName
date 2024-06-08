@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Literal
 from json import dump, load
 import os
+import math  # noqa: F401
 
 from .global_utils import (
     EVs,
@@ -111,13 +112,13 @@ class NON(object):
     def dump2json(self, test=False):
         if not test:
             self.to_str()
+        make_sure_dir(BASE_NON_FILE_PATH + f"{self.master_id}/NON/")
         path = BASE_NON_FILE_PATH + "{}/NON/{}.json".format(self.master_id, self.name)
         if self.name == "":
             path = BASE_NON_FILE_PATH + "{}/TEMP.json".format(self.master_id)
         if test:
             path = "./"
 
-        make_sure_dir(path)
         # print(os.path.abspath(path))
         with open(path, "w+", encoding="utf-8") as f:
             dump(self, f, default=lambda obj: obj.__dict__, ensure_ascii=False)
@@ -133,7 +134,7 @@ class NON(object):
         self.species = species_data_dict_en[self.species]
         self.ability = ability_data_dict_en[self.ability]
         self.item = item_data_dict_en[self.item] if self.item is not None else None
-        if self.stat is not None:
+        if self.stat is not None and isinstance(self.stat, dict):
             self.stat = StatValue(**self.stat)
         if self.types is None:
             self.types = self.species.types
