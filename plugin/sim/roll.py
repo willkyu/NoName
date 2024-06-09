@@ -62,7 +62,9 @@ def __getNon(species: SpeciesData, player: Player):
     # 随机技能列表
     non.move_slots = {
         move_name: MoveSlot(move_name)
-        for move_name in random.sample(list(species.move_learn_set.values()), 4)
+        for move_name in random.sample(
+            list(species.move_learn_set.values()), min(4, len(species.move_learn_set))
+        )
     }
 
     non.master_id = player.id

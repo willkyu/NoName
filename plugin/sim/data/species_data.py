@@ -19,6 +19,7 @@ species_data_base: list[SpeciesData] = [
         species_strength=SpeciesStrength(
             HP=100, ATK=100, DEF=100, SPA=100, SPD=100, SPE=100
         ),
+        move_learn_set={1: "撞击"},
         desc="你不应该得到它.",
     )
 ]

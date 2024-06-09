@@ -189,11 +189,11 @@ class NON(object):
             move = moveslot.move
             non_str += f"{move.name_cn}({move.category}) Type:{move.type} pp: {moveslot.pp}/{moveslot.pp_max}\n"
             if move.base_power is not None:
-                non_str += f"Base Power: {move.base_power}"
-            non_str += "Accuracy: {}\n".format(
+                non_str += f"    Base Power: {move.base_power} "
+            non_str += "    Accuracy: {}\n".format(
                 "--" if isinstance(move.accuracy, bool) else move.accuracy
             )
-        non_str += f"HP: {self.hp}/{self.hp_max}, ATK: {self.stat.ATK}, DEF: {self.stat.DEF}, SPA: {self.stat.SPA}, SPD: {self.stat.SPD}, SPE: {self.stat.SPE}"
+        non_str += f"能力值:\nHP: {self.hp}/{self.hp_max}, ATK: {self.stat.ATK}, DEF: {self.stat.DEF}, SPA: {self.stat.SPA}, SPD: {self.stat.SPD}, SPE: {self.stat.SPE}"
 
         return non_str
 
@@ -217,7 +217,7 @@ def init_non_from_species(species: SpeciesData) -> NON:
         level=5,
         gender="N",
         in_battle="",
-        ability="Hello World",
+        ability="你好世界",
         move_slots={},
         ivs=IVs().__dict__,
         evs=EVs().__dict__,
@@ -226,4 +226,4 @@ def init_non_from_species(species: SpeciesData) -> NON:
 
 def init_move_slot(move_data: MoveData) -> MoveSlot:
     # TODO
-    return MoveSlot(name="Tackle")
+    return MoveSlot(name="撞击")

@@ -15,8 +15,11 @@ ability_data_base: list[Ability] = [
                 NonEvent(reason="你好世界", exe=AbilityFunctions.hello_world)
             ]
         ),
-    )
+    ),
+    Ability(id=2, name="", name_cn="", desc="", add_non_events=NonEventsObj()),
 ]
+
+# Ability(id=2, name="", name_cn="", desc="", add_non_events=NonEventsObj()),
 
 
 ability_data_dict_en: dict[str, Ability] = {

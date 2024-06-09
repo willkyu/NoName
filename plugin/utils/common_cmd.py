@@ -50,7 +50,7 @@ def gacha_cmd(
         )
         return
     if _check_temp_non(user_id):
-        species_name = get_non_entity(user_id).species.name
+        species_name = get_non_entity(user_id).species.name_cn
         bot.send(
             mode,
             user_id if mode == "private" else group_id,
@@ -70,6 +70,7 @@ def gacha_cmd(
             user_id if mode == "private" else group_id,
             message=f"{id2name.get_name(user_id)}的灵魂不够了……",
         )
+        return
     bot.send(
         mode,
         user_id if mode == "private" else group_id,
@@ -90,7 +91,7 @@ def name_cmd(
         org_path = BASE_NON_FILE_PATH + f"{user_id}/TEMP.json"
         target_path = BASE_NON_FILE_PATH + f"{user_id}/NON/{command_list[1]}.json"
         if os.path.exists(target_path):
-            non_species_name = get_non_entity(user_id, command_list[1]).species.name
+            non_species_name = get_non_entity(user_id, command_list[1]).species.name_cn
             bot.send(
                 mode,
                 user_id if mode == "private" else group_id,
@@ -105,7 +106,7 @@ def name_cmd(
         bot.send(
             mode,
             user_id if mode == "private" else group_id,
-            message=f"已将暂存区的NON({non.species.name})取名为{command_list[1]}.",
+            message=f"已将暂存区的NON({non.species.name_cn})取名为{command_list[1]}.",
         )
         return
 
@@ -121,7 +122,7 @@ def name_cmd(
             return
 
         if os.path.exists(target_path):
-            non_species_name = get_non_entity(user_id, command_list[2]).species.name
+            non_species_name = get_non_entity(user_id, command_list[2]).species.name_cn
             bot.send(
                 mode,
                 user_id if mode == "private" else group_id,
@@ -136,7 +137,7 @@ def name_cmd(
         bot.send(
             mode,
             user_id if mode == "private" else group_id,
-            message=f"已将暂存区的NON({non.species.name})取名为{command_list[1]}.",
+            message=f"已将暂存区的NON({non.species.name_cn})取名为{command_list[1]}.",
         )
         return
 
@@ -148,7 +149,7 @@ def give_cmd(
     group_id: str = "",
 ):
     mode = "private" if group_id == "" else "group"
-    if command_list[0].lower() != "name" or len(command_list) < 2:
+    if command_list[0].lower() != "give" or len(command_list) < 2:
         return
     if not _check_exist_non(user_id, command_list[1]):
         bot.send(
@@ -167,11 +168,11 @@ def give_cmd(
                 message=f"{command_list[1]}身上没有物品.",
             )
             return
-        player.set_item(non.item.name, player.bag[non.item.name] + 1)
+        player.set_item(non.item.name_cn, player.bag[non.item.name_cn] + 1)
         bot.send(
             mode,
             user_id if mode == "private" else group_id,
-            message=f"已从{command_list[1]}身上拿下物品{non.item.name}.",
+            message=f"已从{command_list[1]}身上拿下物品{non.item.name_cn}.",
         )
         non.item = None
         non.dump2json()
@@ -184,20 +185,20 @@ def give_cmd(
             message="你没有这件东西.",
         )
         return
-    player.set_item(non.item.name, player.bag[non.item.name] - 1)
+    # player.set_item(non.item.name, player.bag[non.item.name] - 1)
     temp_item = ""
     if non.item is not None:
-        player.set_item(non.item.name, player.bag[non.item.name] - 1)
-        temp_item = non.item.name
+        player.set_item(non.item.name_cn, player.bag[non.item.name_cn] - 1)
+        temp_item = non.item.name_cn
     non.item = item_data_dict_cn[command_list[2]]
     non.dump2json()
     bot.send(
         mode,
         user_id if mode == "private" else group_id,
         message=(
-            f"已给{non.name}携带{non.item.name}."
-            if temp_item != ""
-            else f"已给{non.name}携带{non.item.name}.({temp_item}已被放入背包)"
+            f"已给{non.name}携带{non.item.name_cn}."
+            if temp_item == ""
+            else f"已给{non.name}携带{non.item.name_cn}.({temp_item}已被放入背包)"
         ),
     )
     return
