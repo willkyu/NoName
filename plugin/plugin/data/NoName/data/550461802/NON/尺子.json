@@ -1,14 +1,14 @@
 {
     "name": "尺子",
     "master_id": "550461802",
-    "species": "NillKyu",
+    "species": "拟Q",
     "level": 5,
     "gender": "N",
     "in_battle": "",
-    "ability": "Hello World",
+    "ability": "你好世界",
     "move_slots": {
-        "Tackle": {
-            "name": "Tackle"
+        "撞击": {
+            "name": "撞击"
         }
     },
     "ivs": {

@@ -2,10 +2,22 @@ import OlivOS
 from html import unescape
 
 from .help_cmd import help_cmd
-from .common_cmd import config_update, gacha_cmd, name_cmd
+from .common_cmd import (
+    config_update,
+    gacha_cmd,
+    name_cmd,
+    give_cmd,
+    team_cmd,
+    info_cmd,
+    use_cmd,
+)
 from .config import Config
 from ..sim.battle import Battle
 from ..sim.global_utils import battle_mode
+from ..sim.data.item_data import item_data_dict_cn
+from ..sim.player import Player
+
+SELF_ID = "2136707662"
 
 
 def unity_group_reply(
@@ -29,10 +41,15 @@ def unity_group_reply(
     group_command = message.lstrip(".non").strip().split(" ")
     match group_command[0]:
         case "开始战斗":
+            if len(Player(user_id).team) < 1:
+                bot_send.send("group", group_id, "你的队伍中没有成员")
+                return
+
             if len(group_command) < 2 and group_battle_dict.get(group_id, None) is None:
                 bot_send.send(
-                    "group", group_id, "请选择战斗规则，可选项有:{}".format(battle_mode)
+                    "group", group_id, f"请选择战斗规则，可选项有:{battle_mode}"
                 )
+                return
             if (
                 not group_battle_dict.get(group_id, False)
                 and group_command[1] in battle_mode
@@ -48,13 +65,32 @@ def unity_group_reply(
                 #     parserPatterns[groupId] = addRes
             else:
                 bot_send.send(
-                    "group", group_id, "无此战斗规则，可选项有:{}".format(battle_mode)
+                    "group", group_id, f"无此战斗规则，可选项有:{battle_mode}"
                 )
             return
         case "添加群" | "移除群":
             config_update(user_id, group_command[0], config, group_id)
             return
+        case "gift":
+            if (
+                len(group_command) < 2
+                or group_command[1] not in item_data_dict_cn.keys()
+            ):
+                print(list(item_data_dict_cn.keys()))
+                return
+            print(bot_send.get_group_member_list(group_id))
+            for player_info in bot_send.get_group_member_list(group_id)["data"]:
+                player_id = player_info["id"]
+                if player_id == SELF_ID:
+                    continue
+                player = Player(player_id)
+                player.set_item(group_command[1], player.bag[group_command[1]] + 1)
+                print("done.")
 
     gacha_cmd(group_command, user_id, bot_send, group_id)
     name_cmd(group_command, user_id, bot_send, group_id)
     help_cmd(group_command, user_id, bot_send, group_id)
+    give_cmd(group_command, user_id, bot_send, group_id)
+    team_cmd(group_command, user_id, bot_send, group_id)
+    use_cmd(group_command, user_id, bot_send, group_id)
+    info_cmd(group_command, user_id, bot_send, group_id)

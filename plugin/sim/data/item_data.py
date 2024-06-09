@@ -11,12 +11,20 @@ item_data_base: list[ItemData] = [
         name="Infinite Pitaya",
         name_cn="无限火龙果",
         rarity="WHITE",
-        desc="这是什么？火龙果，吃一口。这是什么？火龙果，吃一口。",
+        desc="“这是什么？火龙果，吃一口. 这是什么？火龙果，吃一口.”\n给NON携带后，每次受到招式伤害恢复一定血量.",
         add_non_events=NonEventsObj(
             on_hit=[
                 NonEvent(reason="无限火龙果", exe=ItemFunctions.infinite_pitaya_on_hit)
             ]
         ),
+    ),
+    ItemData(
+        id=1,
+        name="Reflection of MOPO",
+        name_cn="童年的倒影",
+        rarity="GOLD",
+        desc="“看好了，我只演示一次.”\n进行一次无消耗gacha，如果结果不是NON则该物品不会消耗.",
+        can_be_use=True,
     ),
 ]
 
@@ -30,7 +38,7 @@ item_data_dict_cn: dict[str, ItemData] = {
 
 item_data_rarity: dict[str, ItemData] = {
     rarity: [
-        item_data.name for item_data in item_data_base if item_data.rarity == rarity
+        item_data.name_cn for item_data in item_data_base if item_data.rarity == rarity
     ]
     for rarity in rarity_list
 }

@@ -17,4 +17,7 @@ class Condition:
     # TODO
 
     def __str__(self) -> str:
-        return self.name_cn
+        condition_str = ""
+        condition_str += f"{self.name_cn} {self.name}\n"
+        condition_str += self.desc
+        return condition_str

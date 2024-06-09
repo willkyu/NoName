@@ -27,17 +27,19 @@ class ItemData:
     name_cn: str
 
     # 稀有度
-    rarity: Rarity
+    rarity: str
     # description
     desc: str
-    # 是否是消耗品
+    # 是否是消耗品，战斗中的消耗
     consumable: bool = False
+    # 直接使用
+    can_be_use: bool = False
     # 一些布尔型flag
     flags: dict[str, bool] = field(default_factory=dict)
 
     add_non_events: NonEventsObj = field(default_factory=NonEventsObj)
 
-    # # TODO
+    # TODO
     # def __post_init__(self):
     #     if self.flags is None:
     #         self.flags = {}
@@ -45,7 +47,11 @@ class ItemData:
     #         self.add_non_events = NonEventsObj()
 
     def __str__(self) -> str:
-        return self.name_cn
+        item_str = ""
+        item_str += f"{self.name_cn} {self.name} 稀有度: {self.rarity}\n"
+        item_str += "可以直接使用.\n" if self.can_be_use else ""
+        item_str += self.desc
+        return item_str
 
     # TODO
     pass

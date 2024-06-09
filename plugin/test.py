@@ -5,9 +5,6 @@ from sim.battle import *
 
 print("Done.")
 
-
-commandPriorityDict = {"a": 3, "b": 2, "c": 3, "d": 1}
-
 # from sim.non import NON
 # from plugin.sim.global_utils import *
 # from sim.command import Command
@@ -48,13 +45,13 @@ while not battletest.finished:
     command = input()
     exec(command)
 
-import re
-
-
-print(re.findall("(\d).*\[(.*?)\]", "gasdg1afgj[124]galkj"))
 
 battletest.add_command(mopo, "0")
+battletest.add_command(mopo, "1")
+
 battletest.add_command(willQ, "0")
+battletest.add_command(willQ, "1")
+
 
 battletest.add_command(mopo, "测试NON000", Command("测试NON", "move", "Tackle"))
 battletest.add_command(mopo, "测试NON001", Command("测试NON003", "switch", ""))

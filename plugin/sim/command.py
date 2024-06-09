@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Literal
 
-from .data.move_data import move_data_dict_en
+from .data.move_data import move_data_dict_cn
 
 
 @dataclass
@@ -20,5 +20,5 @@ class Command:
 
 
 def get_move_priority(move: str) -> int:
-    return move_data_dict_en[move].priority
+    return move_data_dict_cn[move].priority
     pass

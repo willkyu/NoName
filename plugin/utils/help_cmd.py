@@ -23,6 +23,10 @@ def help_cmd(
         helpmsg += "[gacha] 进行一次抽奖.\n"
         helpmsg += "[name] 对NON进行命名/重命名.\n"
         helpmsg += "[info] 查看指定内容的详情（暂未实现）."
+        helpmsg += "[give] 给NON携带道具."
+        helpmsg += "[team] 配置你的队伍."
+        # helpmsg += "[info] 查看指定内容的详情（暂未实现）."
+
     elif command_list[1] == "开始战斗":
         helpmsg += ".non 开始战斗:\n"
         helpmsg += "群聊限定. \n"
@@ -43,9 +47,9 @@ def help_cmd(
         helpmsg += "  你可以使用.non info bag指令查看你的背包."
     elif command_list[1] == "name":
         helpmsg += ".non name:\n"
+        helpmsg += "对你的NON进行命名/重命名.\n"
         helpmsg += "这个指令后必须接其他参数.\n"
         helpmsg += "以下指令例子中的中括号都是不需要的.\n"
-        helpmsg += "对你的NON进行命名/重命名.\n"
         helpmsg += "· .non name [NonName]:\n"
         helpmsg += "  为暂存区中的NON取名.\n"
         helpmsg += "· .non name [NonName1] [NonName2]:\n"
@@ -53,16 +57,37 @@ def help_cmd(
         helpmsg += "**注意，起名请勿带标点符号或其他特殊字符，只建议中英文**"
     elif command_list[1] == "info":
         helpmsg += ".non info:\n"
-        helpmsg += "以下指令例子中的中括号都是不需要的.\n"
         helpmsg += "查看指定内容的详情.\n"
+        helpmsg += "以下指令例子中的中括号都是不需要的.\n"
         helpmsg += "· .non info bag:\n"
         helpmsg += "  查看你的背包.\n"
+        helpmsg += "· .non info non:\n"
+        helpmsg += "  查看你的所有NON\n"
         helpmsg += "· .non info non [NonName]:\n"
         helpmsg += "  查看你的NON信息，如果在对战中会显示对战状态\n"
         helpmsg += "· .non info ability [AbilityName]:\n"
         helpmsg += "  查看名为AbilityName的特性名称\n"
         helpmsg += "· .non info item [ItemName]:\n"
         helpmsg += "  查看名为ItemName的物品名称\n"
+    elif command_list[1] == "give":
+        helpmsg += ".non give:\n"
+        helpmsg += "给你的NON携带物品.\n"
+        helpmsg += "这个指令后必须接其他参数.\n"
+        helpmsg += "以下指令例子中的中括号都是不需要的.\n"
+        helpmsg += "· .non give [NonName]:\n"
+        helpmsg += "  将你的名为NonName的NON身上的物品放回背包.\n"
+        helpmsg += "· .non give [NonName] [ItemName]:\n"
+        helpmsg += "  将名为ItemName的物品放在你名为NonName的NON身上\n"
+        helpmsg += "  如果其本身就有物品，那个物品会被放回你的背包.\n"
+    elif command_list[1] == "team":
+        helpmsg += ".non team:\n"
+        helpmsg += "编辑你的队伍.\n"
+        helpmsg += "以下指令例子中的中括号都是不需要的.\n"
+        helpmsg += "· .non team:\n"
+        helpmsg += "  查看你的队伍\n"
+        helpmsg += "· .non team [NonName1] ... [NonNameX]:\n"
+        helpmsg += "  编辑你的队伍为NonName1 ... NonNameX.\n"
+        helpmsg += "  X最大为4，每个NonName之间用空格分隔\n"
 
     bot.send(
         mode,

@@ -3,11 +3,17 @@ from json import load
 import os
 from random import shuffle, choice
 import math
+import random
 from typing import Annotated, Callable, Literal
 
 # import OlivOS
 
-from .global_utils import BattleMode, get_nickname, make_sure_dir, BASE_NON_FILE_PATH
+from .global_utils import (
+    BattleMode,
+    make_sure_dir,
+    BASE_NON_FILE_PATH,
+    id2name,
+)
 from .non import NON, MoveSlot
 from .command import Command
 from .player import Player
@@ -187,10 +193,13 @@ class Field:
                 target_non_index = command.target_tuple[1]
                 self.event_trigger_single("before_switch", (side_id, command_index))
                 self.log.append(
-                    "{}收回了{}，派出了{}.".format(
-                        side_id,
+                    "{}收回了{}，派出了{}({}).".format(
+                        id2name.get_name(side_id),
                         self.sides[side_id].active_nons[command_index].name,
                         command.target,
+                        self.tuple2non(
+                            command.target_tuple, active=False
+                        ).species.name_cn,
                     )
                 )
 
@@ -224,7 +233,7 @@ class Field:
         # self.eventTriggerSingle("beforeSwitch", (sideId, commandIndex))
         self.bot_send_group(
             "{}派出了{}到位置{}.".format(
-                player_id,
+                id2name.get_name(player_id),
                 self.sides[player_id].not_active_nons[target_non_index].name,
                 org_id,
             )
@@ -255,6 +264,11 @@ class Field:
                 return
             target_non = self.tuple2non(target_tuple)
         if non.move_slots[command.move].move.category != "Auxiliary":
+            # 伤害前效果
+            non.move_slots[command.move].move.condition(
+                self, target_tuple, org_tuple=(side_id, command_index)
+            )
+
             damage = self.calculate_damage(
                 non,
                 non.move_slots[command.move],
@@ -282,6 +296,11 @@ class Field:
             )
             self.make_damage(target_tuple, damage)
             self.event_trigger_single("on_hit", target_tuple)
+            # 伤害后效果
+            non.move_slots[command.move].move.secondary(
+                self, target_tuple, org_tuple=(side_id, command_index)
+            )
+
         else:
             # 辅助招式
             pass
@@ -324,19 +343,27 @@ class Field:
         # fainted的处理
         self.log.append(
             "[{}]的[{}]倒下了……".format(
-                get_nickname(target_tuple[0]), self.tuple2non(target_tuple).name
+                id2name.get_name(target_tuple[0]), self.tuple2non(target_tuple).name
             )
         )
         if self.have_non_to_switch(target_tuple[0]):
             self.wait_switch_dict[target_tuple[0]].append(target_tuple[1])
-            self.log.append("{}将要选择NON到位置{}上.".format(*target_tuple))
+            self.log.append(
+                "{}将要选择NON到位置{}上.".format(
+                    id2name.get_name(target_tuple[0]), target_tuple[1]
+                )
+            )
         elif self.sides[target_tuple[0]].check_lose():
-            self.log.append("{}没有可以拿出的NON了……".format(target_tuple[0]))
+            self.log.append(
+                "{}没有可以拿出的NON了……".format(id2name.get_name(target_tuple[0]))
+            )
         pass
 
     def calculate_damage(self, org_non: NON, move: MoveSlot, target_non: NON):
         # 计算伤害，orgNon是攻击方
-        multiply = 1.0 * (1.5 if move.move.type in org_non.types else 1.0)
+        multiply = random.uniform(0.85, 1) * (
+            1.5 if move.move.type in org_non.types else 1.0
+        )
         category = move.move.category
         # TODO 计算属性克制倍率
         damage = multiply * (
@@ -350,7 +377,8 @@ class Field:
                     else 2 / (2 - org_non.stats_level.ATK)
                 )
                 if category == "Physical"
-                else (
+                else org_non.stat.SPA
+                * (
                     org_non.stat.SPA * (2 + org_non.stats_level.SPA) / 2
                     if org_non.stats_level.SPA > 0
                     else 2 / (2 - org_non.stats_level.SPA)

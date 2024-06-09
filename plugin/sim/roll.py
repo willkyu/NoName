@@ -1,6 +1,6 @@
 import random
 
-from .global_utils import hidden_ability_available, stat_list
+from .global_utils import hidden_ability_available, stat_list, write_coin
 
 from .item import Rarity, rarity_list
 from .player import Player
@@ -15,7 +15,13 @@ ITEAMRATE = 0.8
 
 
 # todo 补充补给品类和获取
-def gacha(player: Player, area: str):
+def gacha(player: Player, area: str, mode: str = "normal"):
+    if mode == "normal":
+        if player.coin >= 100:
+            write_coin(player.id, player.coin - 100)
+        else:
+            return False
+
     # 从json文件读取类信息,来获取权重总和等信息
     # * 这里直接从.data.livingArea中读了
     species_name_cn_list = [non_name_cn for non_name_cn in area_data[area]]
@@ -61,7 +67,7 @@ def __getNon(species: SpeciesData, player: Player):
 
     non.master_id = player.id
     non.save()  # 这时候会保存在暂存区，等待命名
-    return f"NON(Lv.{non.level}): {non.species.name}"
+    return f"NON(Lv.{non.level}): {non.species.name_cn}"
 
 
 def __get_random_items(player: Player):
@@ -73,7 +79,6 @@ def __get_random_items(player: Player):
     rarity = random.choices(rarity_list_except_empty, rarity_rate_list)[0]
     item = random.choice(item_data_rarity[rarity])
 
-    # todo 更加item归属层
     player.set_item(item, player.bag[item] + 1)
     return f"物品({rarity}): {item}"
 

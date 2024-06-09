@@ -27,9 +27,3 @@ class AbilityFunctions:
                     )
                 )
         pass
-
-    @classmethod
-    def burnt_end_of_turn(cls, self: NonEvent, field: Field, **kwargs):
-        non = field.tuple2non(kwargs["org"])
-        non.conditions["Burnt"].flags["turn"] += 1
-        non.hp -= non.hp_max // 10

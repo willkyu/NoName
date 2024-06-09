@@ -36,10 +36,11 @@ class SpeciesStrength:
 class SpeciesData:
     name: str
     name_cn: str
-    idex: int
+    index: int
     types: list[Type]
     abilities: SpeciesAbilities
     species_strength: SpeciesStrength
+    desc: str
 
     """
     出现率相关
@@ -68,6 +69,17 @@ class SpeciesData:
                 3: "Tackle",
                 4: "Tackle",
             }
+
+    def __str__(self):
+        species_str = ""
+        species_str += f"{self.name_cn} {self.name}, No.{self.index}\nTypes: "
+        species_str += ", ".join(self.types)
+        species_str += (
+            f"\nAbilities: {self.abilities.A1}, {self.abilities.A2} and ???\n"
+        )
+        species_str += f"HP: {self.species_strength.HP}, ATK: {self.species_strength.ATK}, DEF: {self.species_strength.DEF}, SPA: {self.species_strength.SPA}, SPD: {self.species_strength.SPD}, SPE: {self.species_strength.SPE}\n"
+        species_str += self.desc
+        return species_str
 
 
 def getSpeciesRateBuff(species: SpeciesData):

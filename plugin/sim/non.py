@@ -12,7 +12,7 @@ from .global_utils import (
     StatLevel,
     StatValue,
     Type,
-    get_move_en,
+    get_move_cn,
     make_sure_dir,
     stat_list,
     BASE_NON_FILE_PATH,
@@ -23,9 +23,10 @@ from .ability import Ability
 from .item import ItemData
 from .condition import Condition
 from .non_events import NonEventsObj
-from .data.ability_data import ability_data_dict_en
-from .data.species_data import species_data_dict_en
-from .data.item_data import item_data_dict_en
+from .data.ability_data import ability_data_dict_cn
+from .data.species_data import species_data_dict_cn
+from .data.item_data import item_data_dict_cn
+from .data.condition_data import condition_data_dict_cn
 
 
 @dataclass
@@ -43,7 +44,7 @@ class MoveSlot:
 
     def __post_init__(self):
         if self.name is not None:
-            self.move = get_move_en(self.name)
+            self.move = get_move_cn(self.name)
             self.id = self.move.id
             self.name_cn = self.move.name_cn
             self.pp = self.move.pp
@@ -83,8 +84,20 @@ class NON(object):
     def __post_init__(self):
 
         self.to_entity()
-        if self.stat is None:
-            self.calculate_stat()
+        self.calculate_stat()
+
+    def add_condition(self, condition: str):
+        self.conditions[condition] = condition_data_dict_cn[condition]
+        for att in self.conditions[condition].add_non_events.__dict__.keys():
+            exec(
+                f"self.non_events.{att}+=self.conditions[condition].add_non_events.{att}"
+            )
+
+    def lose_conditions(self, reason: str):
+        remove_dict = {}
+        for att in self.non_events.__dict__.keys():
+            remove_dict[att] = eval(f"self.non_events.{att}.remove{reason}")
+        return remove_dict
 
     def hook_non_events(self):
         for att in self.ability.add_non_events.__dict__.keys():
@@ -100,7 +113,7 @@ class NON(object):
             self.ivs.HP
             self.evs.HP
             stat_dict[stat] = eval(
-                f"math.floor({10 if stat == 'HP' else 5}+(self.level*(2*self.species.species_strength.{stat}+self.ivs.{stat}+math.sqrt(self.evs.{stat}) / 8))/100)"
+                f"math.floor({10+self.level if stat == 'HP' else 5}+(self.level*(2*self.species.species_strength.{stat}+self.ivs.{stat}+self.evs.{stat} / 4))/100)"
             )
         self.hp_max = stat_dict["HP"]
         self.hp = stat_dict["HP"]
@@ -131,9 +144,9 @@ class NON(object):
         self.conditions = {}
         self.ivs = IVs(**self.ivs)
         self.evs = EVs(**self.evs)
-        self.species = species_data_dict_en[self.species]
-        self.ability = ability_data_dict_en[self.ability]
-        self.item = item_data_dict_en[self.item] if self.item is not None else None
+        self.species = species_data_dict_cn[self.species]
+        self.ability = ability_data_dict_cn[self.ability]
+        self.item = item_data_dict_cn[self.item] if self.item is not None else None
         if self.stat is not None and isinstance(self.stat, dict):
             self.stat = StatValue(**self.stat)
         if self.types is None:
@@ -148,9 +161,9 @@ class NON(object):
         for k in self.move_slots.keys():
             self.move_slots[k] = {"name": k}
         self.stats_level = None
-        self.species = self.species.name
-        self.ability = self.ability.name
-        self.item = self.item.name if self.item is not None else None
+        self.species = self.species.name_cn
+        self.ability = self.ability.name_cn
+        self.item = self.item.name_cn if self.item is not None else None
         self.non_events = None
         self.battle_status = None
         self.conditions = None
@@ -164,6 +177,25 @@ class NON(object):
             return True
         else:
             return False
+
+    def __str__(self):
+        non_str = ""
+        non_str += f"{self.name}({self.species.name_cn}) Lv.{self.level} Gender: {self.gender}\n"
+        non_str += f"Ability: {self.ability.name_cn} "
+        non_str += "Item: {}\nMoves:\n".format(
+            "no item" if self.item is None else self.item.name_cn
+        )
+        for moveslot in self.move_slots.values():
+            move = moveslot.move
+            non_str += f"{move.name_cn}({move.category}) Type:{move.type} pp: {moveslot.pp}/{moveslot.pp_max}\n"
+            if move.base_power is not None:
+                non_str += f"Base Power: {move.base_power}"
+            non_str += "Accuracy: {}\n".format(
+                "--" if isinstance(move.accuracy, bool) else move.accuracy
+            )
+        non_str += f"HP: {self.hp}/{self.hp_max}, ATK: {self.stat.ATK}, DEF: {self.stat.DEF}, SPA: {self.stat.SPA}, SPD: {self.stat.SPD}, SPE: {self.stat.SPE}"
+
+        return non_str
 
 
 def init_non_from_species(species: SpeciesData) -> NON:
@@ -181,7 +213,7 @@ def init_non_from_species(species: SpeciesData) -> NON:
     return NON(
         name="",
         master_id="",
-        species=species.name,
+        species=species.name_cn,
         level=5,
         gender="N",
         in_battle="",

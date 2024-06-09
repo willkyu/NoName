@@ -2,7 +2,15 @@ import OlivOS
 from html import unescape
 
 from .help_cmd import help_cmd
-from .common_cmd import gacha_cmd, name_cmd, config_update
+from .common_cmd import (
+    gacha_cmd,
+    name_cmd,
+    config_update,
+    give_cmd,
+    team_cmd,
+    use_cmd,
+    info_cmd,
+)
 from .config import Config
 from ..sim.battle import Battle
 
@@ -34,7 +42,7 @@ def unity_private_reply(
         if not group_id:
             bot_send.send("private", user_id, "你未参加任何战斗.")
         elif user_id in group_battle_dict[group_id].player_command_processors.keys():
-            group_battle_dict[group_id].add_command(user_id, user_command)
+            group_battle_dict[group_id].add_command(user_id, user_command[0])
         else:
             bot_send.send("private", user_id, "无需发出指令.")
         return
@@ -47,3 +55,7 @@ def unity_private_reply(
     gacha_cmd(user_command, user_id, bot_send)
     name_cmd(user_command, user_id, bot_send)
     help_cmd(user_command, user_id, bot_send)
+    give_cmd(user_command, user_id, bot_send)
+    team_cmd(user_command, user_id, bot_send)
+    use_cmd(user_command, user_id, bot_send)
+    info_cmd(user_command, user_id, bot_send)

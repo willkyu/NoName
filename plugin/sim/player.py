@@ -6,10 +6,10 @@ from collections import defaultdict
 
 from .global_utils import (
     create_new_config,
-    get_nickname,
     make_sure_dir,
     BASE_NON_FILE_PATH,
     read_coin,
+    id2name,
 )
 
 
@@ -26,7 +26,7 @@ class Player:
         self.id = player_id
         self.bag = None
         # print("getting name")
-        self.nickname = get_nickname(self.id)
+        self.nickname = id2name.get_name(self.id)
         # print(self.nickname)
         self.path = BASE_NON_FILE_PATH + "{}/".format(self.id)
         make_sure_dir(self.path)
@@ -82,7 +82,7 @@ class Player:
         self.bag = dict(**self.bag)
         # 将JSON数据写入文件
         with open(self.path + "userConfig.json", "w+", encoding="utf-8") as file:
-            json.dump(self, file, indent=4, ensure_ascii=False)
+            json.dump(self.__dict__, file, indent=4, ensure_ascii=False)
         self.bag = defaultdict(int, self.bag)
 
     def set_item(self, item: str, count):

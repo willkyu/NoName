@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Literal, Annotated
 from configparser import ConfigParser
-from json import dump
+import json
 import os
 
 import requests
@@ -15,6 +15,16 @@ battle_mode_dsc = ["单打", "双打", "四人乱战"]
 
 
 BASE_NON_FILE_PATH = "./plugin/data/NoName/data/"
+
+
+class Id2Name(dict):
+    def get_name(self, user_id):
+        if not self.get(user_id, False):
+            self[user_id] = get_nickname(user_id)
+        return self.get(user_id)
+
+
+id2name = Id2Name()
 
 
 @dataclass
@@ -72,7 +82,7 @@ def create_new_config(player_id: str):
     }
     make_sure_dir(newdict["path"])
     with open(newdict["path"] + "userConfig.json", "w+", encoding="utf-8") as f:
-        dump(newdict, f, ensure_ascii=False)
+        json.dump(newdict, f, ensure_ascii=False)
 
 
 def get_nickname(qqId: str) -> str:
@@ -90,7 +100,7 @@ def get_move_en(move_name_en: str):
     return move_data_dict_en[move_name_en]
 
 
-def getMoveCn(move_name_cn: str):
+def get_move_cn(move_name_cn: str):
     return move_data_dict_cn[move_name_cn]
 
 

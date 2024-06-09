@@ -1,4 +1,7 @@
+from functools import partial
 from ..move import MoveData
+from .move_function import MoveFunctions
+
 
 move_data_base: list[MoveData] = [
     MoveData(
@@ -23,8 +26,8 @@ move_data_base: list[MoveData] = [
         target="normal",
         base_power=40,
         accuracy=100,
-        desc="向目标发射小小的火苗。有时会令目标烧伤。",
-        # 怎么导致异常状态呢？函数还是变量
+        desc="向目标发射小小的火苗。有时会令目标烧伤.",
+        secondary=partial(MoveFunctions.may_burnt, chance=0.25),
     ),
 ]
 

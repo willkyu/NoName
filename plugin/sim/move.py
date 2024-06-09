@@ -41,7 +41,7 @@ class MoveData:
     desc: str
     # 用于随机技能
     can_be_rolled: bool = True
-    # 一些特殊效果，还没想好是函数还是字符串
+    # 一些特殊效果before use，还没想好是函数还是字符串
     condition: SpecialEffectClass | None = None
     # 基础伤害
     base_power: int | None = None
@@ -51,7 +51,7 @@ class MoveData:
     priority: int = 0
     # 一些布尔型flag，比如是否能突破保护
     flags: dict[str, bool] | None = None
-    # 招式附加效果
+    # 招式附加效果after use
     secondary: SpecialEffectClass | None = None
     # 是否固定伤害值
     damage: None | int | Literal["level"] = None
@@ -60,4 +60,25 @@ class MoveData:
     ohko: bool | str = False
 
     # TODO
+    pass
+
+    def __post_init__(self):
+        if self.condition is None:
+            self.condition = do_nothing
+        if self.secondary is None:
+            self.secondary = do_nothing
+
+    def __str__(self):
+        move_str = ""
+        move_str += f"{self.name_cn} {self.name}({self.category}) Type: {self.type} pp: {self.pp}\n"
+        if self.base_power is not None:
+            move_str += f"Base Power: {self.base_power}"
+        move_str += "Accuracy: {}\n".format(
+            "--" if isinstance(self.accuracy, bool) else self.accuracy
+        )
+        move_str += self.desc
+        return move_str
+
+
+def do_nothing(field, target_tuple, **kwargs):
     pass

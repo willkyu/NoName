@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Literal
 import OlivOS
 
-from .global_utils import BattleMode
+from .global_utils import BattleMode, id2name
 from .field import Field, get_non_entity
 from .player import Player
 from .command import Command
@@ -53,7 +53,7 @@ class Battle:
         self.player_num = 4 if self.battle_mode == "chaos4" else 2
         self.send_group(
             "[{}]发出了对战邀请，当前状态：{}/{}".format(
-                self.player_dict[player_id].nickname,
+                id2name.get_name(player_id),
                 len(self.player_dict),
                 self.player_num,
             )
@@ -75,7 +75,7 @@ class Battle:
         if isinstance(can_add, str):
             self.send_group(
                 "[{}]想要接受对战邀请，但是{}.".format(
-                    Player(player_id).nickname, can_add
+                    id2name.get_name(player_id), can_add
                 ),
                 log=False,
             )
@@ -85,7 +85,7 @@ class Battle:
         if len(self.player_dict) == self.player_num:
             self.send_group(
                 "[{}]接受了对战邀请，当前状态：{}/{}\n即将开始对战...".format(
-                    self.player_dict[player_id].nickname,
+                    id2name.get_name(player_id),
                     len(self.player_dict),
                     self.player_num,
                 )
@@ -99,7 +99,7 @@ class Battle:
         else:
             self.send_group(
                 "[{}]接受了对战邀请，当前状态：{}/{}".format(
-                    self.player_dict[player_id].nickname,
+                    id2name.get_name(player_id),
                     len(self.player_dict),
                     self.player_num,
                 )
@@ -138,15 +138,15 @@ class Battle:
         start_battle_message = "————————————\n▼ 战斗开始！\n┣———————————\n"
         for player_id in self.player_dict.keys():
             start_battle_message += "▶ 玩家[{}]派出了[{}]({}){}\n".format(
-                self.player_dict[player_id].nickname,
+                id2name.get_name(player_id),
                 self.field.sides[player_id].active_nons[0].name,
-                self.field.sides[player_id].active_nons[0].species.name,
+                self.field.sides[player_id].active_nons[0].species.name_cn,
                 (
                     ""
                     if self.battle_mode != "double"
                     else "与[{}]({})".format(
                         self.field.sides[player_id].active_nons[1].name,
-                        self.field.sides[player_id].active_nons[1].species.name,
+                        self.field.sides[player_id].active_nons[1].species.name_cn,
                     )
                 ),
             )
@@ -177,7 +177,7 @@ class Battle:
             self.field.exeCommand(*command_tuple)
 
         # 回合结束处理
-        self.field.event_trigger_all("end_turn_event")
+        self.field.event_trigger_all("end_of_turn")
 
         # print(self.log)
         self.log.append(
@@ -212,7 +212,7 @@ class Battle:
             winnerId (str): _description_
         """
         self.finished = True
-        self.send_group("WINNER is {}!".format(winner_id))
+        self.send_group("WINNER is {}!".format(id2name.get_name(winner_id)))
         pass
 
     def add_command(self, player_id: str, com: str):
@@ -389,7 +389,7 @@ class CommandProcessor:
                 switch_list.append(non.name)
             for idx, non in enumerate(switch_list):
                 self.int2str[idx] = non
-                hint_str += ".non {}:{}\n".format(idx, non)
+                hint_str += "指令【.non {}】:{}\n".format(idx, non)
             return hint_str
 
         if len(self.command_pieces[self.current_non]) == 0:
@@ -397,10 +397,10 @@ class CommandProcessor:
             self.int2str.clear()
             hint_str = "请选择{}的行动:\n".format(self.current_non)
             for idx, move_slot in enumerate(list(non.move_slots.values())):
-                self.int2str[idx] = "move" + move_slot.name
-                hint_str += ".non {}:{}\n".format(idx, move_slot.name)
+                self.int2str[idx] = "move" + move_slot.name_cn
+                hint_str += "指令【.non {}】:{}\n".format(idx, move_slot.name_cn)
             if self.can_switch():
-                hint_str += ".non {}:{}".format(len(self.int2str), "switch")
+                hint_str += "指令【.non {}】:{}".format(len(self.int2str), "switch")
                 self.int2str[len(self.int2str)] = "switch"
             return hint_str
 
@@ -416,8 +416,8 @@ class CommandProcessor:
                         switch_list.append(non.name)
                     for idx, non in enumerate(switch_list):
                         self.int2str[idx] = non
-                        hint_str += ".non {}:{}\n".format(idx, non)
-                    hint_str += ".non {}:{}".format("q", "重新选择")
+                        hint_str += "指令【.non {}】:{}\n".format(idx, non)
+                    hint_str += "指令【.non {}】:{}".format("q", "重新选择")
                     return hint_str
                 case "move":
                     hint_str = "请选择{}的目标:\n".format(
@@ -447,8 +447,10 @@ class CommandProcessor:
                             ]
                     for idx, non_name in enumerate(target_list):
                         self.int2str[idx] = non_name[0]
-                        hint_str += ".non {}:{}\n".format(idx, non_name)
-                    hint_str += ".non {}:{}".format("q", "重新选择")
+                        hint_str += "指令【.non {}】:{}({})\n".format(
+                            idx, non_name[0], id2name.get_name(non_name[1])
+                        )
+                    hint_str += "指令【.non {}】:{}".format("q", "重新选择")
                     return hint_str
                 case _:
                     return "意外的错误！或是{}未实现.".format(
@@ -457,7 +459,7 @@ class CommandProcessor:
 
     def get_current_non_entity(self):
         return self.field.tuple2non(
-            (self.player_id, self.non_name_list.index(self.current_non))
+            self.field.get_non_tuple(self.current_non, self.player_id)
         )
 
     def can_switch(self):
@@ -473,14 +475,14 @@ class CommandProcessor:
             hint += "{}[{}]({}) HP:{}/{} Level:{}, w.\n".format(
                 "×" if non.hp <= 0 else "",
                 non.name,
-                non.species.name,
+                non.species.name_cn,
                 non.hp,
                 non.hp_max,
                 non.level,
             )
             for move_slot in non.move_slots.values():
                 hint += "·{}({}) Type:{} pp:{}/{}\n".format(
-                    move_slot.name,
+                    move_slot.name_cn,
                     move_slot.move.category,
                     move_slot.move.type,
                     move_slot.pp,

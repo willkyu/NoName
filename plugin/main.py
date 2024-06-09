@@ -5,6 +5,7 @@ from .utils.config import Config
 from .utils.group_cmd import unity_group_reply
 from .utils.private_cmd import unity_private_reply
 from .sim.battle import Battle
+from .sim.global_utils import id2name
 
 # activeGroupList = ["957736515"]
 # masterList = ["496373158"]
@@ -32,6 +33,11 @@ def init_msg(Proc):
             bot_info=Proc.Proc_data["bot_info_dict"][BOT_HASH], fakename=PLUGIN_NAME
         ),
         Proc.log,
+    )
+
+    global id2name
+    id2name.update(
+        {data["id"]: data["name"] for data in bot_send.get_friend_list()["data"]}
     )
 
 

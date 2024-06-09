@@ -15,4 +15,7 @@ class ConditionFunctions:
     def burnt_end_of_turn(cls, self: NonEvent, field: Field, **kwargs):
         non = field.tuple2non(kwargs["org"])
         non.conditions["Burnt"].flags["turn"] += 1
-        non.hp -= non.hp_max // 10
+        field.log.append(
+            f"{non.name}--[状态:{self.reason}]-->{non.name}[HP:{non.hp}-{non.hp_max//10}={max(0,non.hp-non.hp_max//10)}/{non.hp_max}]"
+        )
+        non.hp -= min(non.hp_max // 10, non.hp)

@@ -26,9 +26,18 @@ class NonEvent:
 class NonEventList(UserList):
     def exe(self, field: Field, **kwargs):
         # for i in range(len(self)):
-            # super().__getitem__(i).exe(field, **kwargs)
+        # super().__getitem__(i).exe(field, **kwargs)
         for event in self:
             event.exe(field, **kwargs)
+
+    def remove(self, reason: str) -> None:
+        remove_list = []
+        for item in self:
+            item: NonEvent
+            if item.reason == reason:
+                super().remove(item)
+                remove_list.append(item)
+        return remove_list
 
 
 @dataclass
