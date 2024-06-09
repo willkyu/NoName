@@ -55,6 +55,7 @@ class MoveSlot:
 class NonTempBattleStatus:
     last_item: str = ""
     used_item_this_turn: bool = False
+    protect: bool = False
 
 
 @dataclass

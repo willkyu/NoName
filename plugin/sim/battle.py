@@ -1,12 +1,14 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
+import math
 import OlivOS
 
-from .global_utils import BattleMode, id2name
+from .global_utils import BattleMode, id2name, write_coin
 from .field import Field, get_non_entity
 from .player import Player
 from .command import Command
+from .non import NonTempBattleStatus
 
 
 class log(list):
@@ -125,8 +127,11 @@ class Battle:
             self.end(winner_id=not_lose_side_list[0])
         else:
             self.send_group("DRAW! NO WINNER!")
+            self.finished = True
+            self.set_inbattle(False)
 
     def start(self):
+        self.set_inbattle()
         self.player_command_processors = {
             player_id: None for player_id in self.player_dict.keys()
         }
@@ -165,9 +170,20 @@ class Battle:
         self.turn = 0
         self.call_for_commands()
 
+    def set_inbattle(self, inbattle: bool = True):
+        for player_id in self.player_dict.keys():
+            for non_name in Player(player_id).team:
+                non = get_non_entity(player_id, non_name)
+                non.in_battle = self.group_id if inbattle else ""
+                non.save()
+
     def each_turn(self):
         """每回合的操作"""
         self.turn += 1
+        for side_id, side in self.field.sides.items():
+            for index in range(len(side.active_nons)):
+                non = self.field.tuple2non((side_id, index))
+                non.battle_status = NonTempBattleStatus()
         self.send_group(
             "===============\nTurn {} Start!\n===============".format(self.turn)
         )
@@ -180,11 +196,11 @@ class Battle:
         self.field.event_trigger_all("end_of_turn")
 
         # print(self.log)
-        self.log.append(
-            "===============\nTurn {} End!\n===============".format(self.turn)
-        )
         self.send_group("\n".join(self.log))
         self.log.clear()
+        self.send_group(
+            "===============\nTurn {} End!\n===============".format(self.turn)
+        )
 
         wait_switch_flag = False
         # 检查所有fainted的NON
@@ -212,7 +228,21 @@ class Battle:
             winnerId (str): _description_
         """
         self.finished = True
-        self.send_group("WINNER is {}!".format(id2name.get_name(winner_id)))
+        self.set_inbattle(False)
+
+        loser_list = [
+            player for player in self.player_dict.keys() if player != winner_id
+        ]
+        bonus = 0
+        for lose in loser_list:
+            write_coin(lose, Player(lose).coin - 50)
+            bonus += 50
+        bonus = math.floor(bonus * 0.8)
+        write_coin(winner_id, Player(winner_id).coin + bonus)
+        self.send_group(
+            f"WINNER is {id2name.get_name(winner_id)}! 获得了{bonus}点灵魂，其他人失去了50点灵魂."
+        )
+
         pass
 
     def add_command(self, player_id: str, com: str):
@@ -445,7 +475,13 @@ class CommandProcessor:
                                 if non_target.hp > 0
                                 and non_target.name != self.current_non
                             ]
+                        case "all":
+                            target_list += ["all"]
                     for idx, non_name in enumerate(target_list):
+                        if not isinstance(non_name, tuple):
+                            self.int2str[idx] = non_name
+                            hint_str += "指令【.non {}】:{}\n".format(idx, non_name)
+                            continue
                         self.int2str[idx] = non_name[0]
                         hint_str += "指令【.non {}】:{}({})\n".format(
                             idx, non_name[0], id2name.get_name(non_name[1])

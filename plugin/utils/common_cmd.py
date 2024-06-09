@@ -160,6 +160,13 @@ def give_cmd(
         return
     player = Player(user_id)
     non = get_non_entity(user_id, command_list[1])
+    if non.in_battle != "":
+        bot.send(
+            mode,
+            user_id if mode == "private" else group_id,
+            message=f"{command_list[1]}正在进行战斗.",
+        )
+        return
     if len(command_list) == 2:
         if non.item is None:
             bot.send(

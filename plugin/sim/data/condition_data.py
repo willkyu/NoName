@@ -15,7 +15,18 @@ condition_data_base: list[Condition] = [
                 NonEvent(reason="烧伤", exe=ConditionFunctions.burnt_end_of_turn)
             ]
         ),
-    )
+    ),
+    Condition(
+        name="Pollution",
+        name_cn="污染",
+        desc="一点一点，你将不再是你.",
+        flags={"turn": 0},
+        add_non_events=NonEventsObj(
+            end_of_turn=[
+                NonEvent(reason="污染", exe=ConditionFunctions.pollution_end_of_turn)
+            ]
+        ),
+    ),
 ]
 
 

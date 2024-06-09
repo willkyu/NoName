@@ -10,7 +10,7 @@ item_data_base: list[ItemData] = [
         id=1,
         name="Infinite Pitaya",
         name_cn="无限火龙果",
-        rarity="WHITE",
+        rarity="PURPLE",
         desc="“这是什么？火龙果，吃一口. 这是什么？火龙果，吃一口.”\n给NON携带后，每次受到招式伤害恢复一定血量.",
         add_non_events=NonEventsObj(
             on_hit=[
@@ -19,11 +19,27 @@ item_data_base: list[ItemData] = [
         ),
     ),
     ItemData(
-        id=1,
+        id=2,
         name="Reflection of MOPO",
         name_cn="童年的倒影",
         rarity="GOLD",
         desc="“看好了，我只演示一次.”\n进行一次无消耗gacha，如果结果不是NON则该物品不会消耗.",
+        can_be_use=True,
+    ),
+    ItemData(
+        id=3,
+        name="Tiny Rice Dumpling",
+        name_cn="小小的粽子",
+        rarity="WHITE",
+        desc="祝大家端午节快乐，之后将可以用于兑换其他物品.",
+        can_be_use=True,
+    ),
+    ItemData(
+        id=4,
+        name="Huge Rice Dumpling",
+        name_cn="巨大的粽子",
+        rarity="Blue",
+        desc="祝大家端午节快乐，之后将可以用于兑换其他物品.",
         can_be_use=True,
     ),
 ]

@@ -14,7 +14,7 @@ from .global_utils import (
     BASE_NON_FILE_PATH,
     id2name,
 )
-from .non import NON, MoveSlot
+from .non import NON, MoveSlot, StatLevel
 from .command import Command
 from .player import Player
 from .non_events import NonEventsObj
@@ -97,7 +97,12 @@ class Side:
     def calculate_non_speed(self, command_index: int) -> int:
         # 计算指令的NON的当前速度
         non = self.active_nons[command_index]
-        return non.stat.SPE
+        speed = (
+            non.stat.SPA * (2 + non.stats_level.SPA) / 2
+            if non.stats_level.SPA > 0
+            else 2 / (2 - non.stats_level.SPA)
+        )
+        return speed
         pass
 
     def get_all_command(self) -> bool:
@@ -217,7 +222,7 @@ class Field:
             case "item":
                 pass
             case "move":
-                self.exeMove(side_id, command_index)
+                self.exe_move(side_id, command_index)
                 pass
         self.sides[side_id].command_dict[command_index] = None
         pass
@@ -248,7 +253,7 @@ class Field:
         self.event_trigger_single("on_active_once", (player_id, org_id))
         return True
 
-    def exeMove(self, side_id: str, command_index: int):
+    def exe_move(self, side_id: str, command_index: int):
         # 执行move，比较复杂。还没写完
         command: Command = self.sides[side_id].command_dict[command_index]
         if command is None:
@@ -256,14 +261,21 @@ class Field:
         non = self.tuple2non((side_id, command_index))
         non.move_slots[command.move].pp -= 1
         target_tuple = command.target_tuple
-        target_non = self.tuple2non(target_tuple)
-        if target_non.hp <= 0:
-            target_tuple = self.get_random_active_non_tuple(target_tuple[0])
-            if not target_tuple:
-                self.log.append("没有目标.")
-                return
+        if command.target not in ["all"]:
             target_non = self.tuple2non(target_tuple)
+            if target_non.hp <= 0:
+                target_tuple = self.get_random_active_non_tuple(target_tuple[0])
+                if not target_tuple:
+                    self.log.append(f"{non.name}没有目标.")
+                    return
+                target_non = self.tuple2non(target_tuple)
+            if target_non.battle_status.protect:
+                self.log.append(f"{target_non.name}保护了自己.")
+                return
         if non.move_slots[command.move].move.category != "Auxiliary":
+            if command.target == "all":
+                # TODO全体伤害
+                pass
             # 伤害前效果
             non.move_slots[command.move].move.condition(
                 self, target_tuple, org_tuple=(side_id, command_index)
@@ -295,7 +307,9 @@ class Field:
                 )
             )
             self.make_damage(target_tuple, damage)
-            self.event_trigger_single("on_hit", target_tuple)
+            self.event_trigger_single(
+                "on_hit", target_tuple, move_org=(side_id, command_index)
+            )
             # 伤害后效果
             non.move_slots[command.move].move.secondary(
                 self, target_tuple, org_tuple=(side_id, command_index)
@@ -303,7 +317,10 @@ class Field:
 
         else:
             # 辅助招式
-            pass
+            self.log.append(f"{non.name}使用了{command.move}.")
+            non.move_slots[command.move].move.condition(
+                self, target_tuple, org_tuple=(side_id, command_index)
+            )
 
         pass
 
@@ -514,10 +531,10 @@ class Field:
     def update_weather(self, weather: str, reason: str, org: tuple[str, int], **kwargs):
         # 尝试改变天气
         if self.weather == weather:
-            self.log.append("天气没有任何变化……\n")
+            self.log.append("天气没有任何变化……")
             return
         self.weather = weather
-        self.log.append("由于[{}]天气变成了{}……\n".format(reason, self.weather))
+        self.log.append("由于[{}]天气变成了{}……".format(reason, self.weather))
         kwargs["weatherChangedOrg"] = org
         self.event_trigger_all("onWeatherChanged", **kwargs)
 
@@ -549,6 +566,9 @@ class Field:
                 # print(non.name)
                 return True
         return False
+
+    def generate_empty_stat_level(self):
+        return StatLevel()
 
 
 def get_non_entity(master_id: str, non_name: str = "") -> NON | bool:

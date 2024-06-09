@@ -64,7 +64,7 @@ def help_cmd(
         helpmsg += "· .non info non:\n"
         helpmsg += "  查看你的所有NON\n"
         helpmsg += "· .non info non [NonName]:\n"
-        helpmsg += "  查看你的NON信息，如果在对战中会显示对战状态\n"
+        helpmsg += "  查看你的NON信息，如果在对战中会显示对战状态(暂未实现)\n"
         helpmsg += "· .non info ability [AbilityName]:\n"
         helpmsg += "  查看名为AbilityName的特性名称\n"
         helpmsg += "· .non info item [ItemName]:\n"
