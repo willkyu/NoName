@@ -18,7 +18,8 @@ class ConditionFunctions:
         field.log.append(
             f"{non.name}--[状态:{self.reason}]-->{non.name}[HP:{non.hp}-{non.hp_max//10}={max(0,non.hp-non.hp_max//10)}/{non.hp_max}]"
         )
-        non.hp -= min(non.hp_max // 10, non.hp)
+        field.make_damage(kwargs["org"], non.hp_max // 10)
+        # non.hp -= min(non.hp_max // 10, non.hp)
 
     @classmethod
     def pollution_end_of_turn(cls, self: NonEvent, field: Field, **kwargs):
@@ -28,4 +29,6 @@ class ConditionFunctions:
         field.log.append(
             f"{non.name}--[状态:{self.reason}({turn})]-->{non.name}[HP:{non.hp}-{non.hp_max//20*turn}={max(0,non.hp-non.hp_max//20*turn)}/{non.hp_max}]"
         )
-        non.hp -= min(non.hp_max // 20 * turn, non.hp)
+        field.make_damage(kwargs["org"], non.hp_max // 20 * turn, non.hp)
+
+        # non.hp -= min(non.hp_max // 20 * turn, non.hp)

@@ -38,6 +38,7 @@ def unity_group_reply(
 
     if user_id not in [data["id"] for data in plugin_event.get_friend_list()["data"]]:
         bot_send.send("group", group_id, "请先添加为好友^^")
+        return
 
     group_command = message.lstrip(".non").strip().split(" ")
     match group_command[0]:

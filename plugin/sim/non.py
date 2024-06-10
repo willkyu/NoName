@@ -4,6 +4,7 @@ from typing import Literal
 from json import dump, load
 import os
 import math  # noqa: F401
+from copy import deepcopy
 
 from .global_utils import (
     EVs,
@@ -88,7 +89,7 @@ class NON(object):
         self.calculate_stat()
 
     def add_condition(self, condition: str):
-        self.conditions[condition] = condition_data_dict_cn[condition]
+        self.conditions[condition] = deepcopy(condition_data_dict_cn[condition])
         for att in self.conditions[condition].add_non_events.__dict__.keys():
             exec(
                 f"self.non_events.{att}+=self.conditions[condition].add_non_events.{att}"
