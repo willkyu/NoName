@@ -110,6 +110,14 @@ def name_cmd(
         )
         return
 
+    elif not _check_temp_non(user_id):
+        bot.send(
+            mode,
+            user_id if mode == "private" else group_id,
+            message="暂存区中没有NON.",
+        )
+        return
+
     else:
         org_path = BASE_NON_FILE_PATH + f"{user_id}/NON/{command_list[1]}.json"
         target_path = BASE_NON_FILE_PATH + f"{user_id}/NON/{command_list[2]}.json"
