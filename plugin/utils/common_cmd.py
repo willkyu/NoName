@@ -71,6 +71,12 @@ def gacha_cmd(
             message=f"{id2name.get_name(user_id)}的灵魂不够了……",
         )
         return
+    if gacha_res.startswith("NON"):
+        bot.send(
+            mode,
+            user_id if mode == "private" else group_id,
+            message=f"{id2name.get_name(user_id)}获得了{gacha_res}.\n请使用指令.non name 【名字】为其命名.",
+        )
     bot.send(
         mode,
         user_id if mode == "private" else group_id,
@@ -145,7 +151,7 @@ def name_cmd(
         bot.send(
             mode,
             user_id if mode == "private" else group_id,
-            message=f"已将暂存区的NON({non.species.name_cn})取名为{command_list[1]}.",
+            message=f"已将NON({command_list[1]})重命名为{command_list[2]}.",
         )
         return
 
@@ -381,18 +387,19 @@ def use_cmd(
                 )
                 return
             gacha_res = gacha(player, command_list[2], mode="童年的倒影")
-            bot.send(
-                mode,
-                user_id if mode == "private" else group_id,
-                message=f"{id2name.get_name(user_id)}获得了{gacha_res}.",
-            )
             if gacha_res.startswith("NON"):
-                player.set_item(item_name, player.bag[item_name] - 1)
                 bot.send(
                     mode,
                     user_id if mode == "private" else group_id,
-                    message="倒影消散了.",
+                    message=f"{id2name.get_name(user_id)}获得了{gacha_res}.\n倒影消散了.\n请使用指令.non name 【名字】为其命名.",
                 )
+                player.set_item(item_name, player.bag[item_name] - 1)
+                return
+            bot.send(
+                mode,
+                user_id if mode == "private" else group_id,
+                message=f"{id2name.get_name(user_id)}获得了{gacha_res}.\n倒影还在那里.",
+            )
             return
         case _:
             bot.send(
