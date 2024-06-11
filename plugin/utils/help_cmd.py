@@ -22,10 +22,10 @@ def help_cmd(
         helpmsg += "[开始战斗] 群聊限定. 开启或参与一场对战.\n"
         helpmsg += "[gacha] 进行一次抽奖.\n"
         helpmsg += "[name] 对NON进行命名/重命名.\n"
-        helpmsg += "[info] 查看指定内容的详情（暂未实现）."
-        helpmsg += "[give] 给NON携带道具."
-        helpmsg += "[team] 配置你的队伍."
-        # helpmsg += "[info] 查看指定内容的详情（暂未实现）."
+        helpmsg += "[info] 查看指定内容的详情（暂未实现）.\n"
+        helpmsg += "[give] 给NON携带道具.\n"
+        helpmsg += "[team] 配置你的队伍.\n\n"
+        helpmsg += "使用.non help [指令]查看具体内容."
 
     elif command_list[1] == "开始战斗":
         helpmsg += ".non 开始战斗:\n"

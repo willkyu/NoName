@@ -24,7 +24,9 @@ class Ability:
             self.add_non_events = NonEventsObj()
 
     def __str__(self) -> str:
-        return self.name_cn
+        ability_str = ""
+        ability_str += f"{self.name_cn} {self.name}\n{self.desc}"
+        return ability_str
 
 
 @dataclass

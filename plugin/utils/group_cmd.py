@@ -59,17 +59,24 @@ def unity_group_reply(
                 bot_send.send("group", group_id, "钱钱不够噢.")
                 return
 
-            if len(group_command) < 2 and group_battle_dict.get(group_id, None) is None:
+            if len(group_command) < 2 and (
+                group_battle_dict.get(group_id, None) is None
+                or (
+                    group_id in group_battle_dict
+                    and group_battle_dict[group_id].finished
+                )
+            ):
                 bot_send.send(
                     "group", group_id, f"请选择战斗规则，可选项有:{battle_mode}"
                 )
                 return
             if (
-                not group_battle_dict.get(group_id, False)
-                and group_command[1] in battle_mode
-            ) or (
-                group_id in group_battle_dict and group_battle_dict[group_id].finished
-            ):
+                (not group_battle_dict.get(group_id, False))
+                or (
+                    group_id in group_battle_dict
+                    and group_battle_dict[group_id].finished
+                )
+            ) and group_command[1] in battle_mode:
                 if group_command[1] == "double" and len(Player(user_id).team) < 2:
                     bot_send.send(
                         "group", group_id, "参加double战斗至少需要队伍中有两个NON."
@@ -130,6 +137,8 @@ def unity_group_reply(
             for player_info in bot_send.get_group_member_list(group_id)["data"]:
                 player_id = player_info["id"]
                 if player_id == SELF_ID:
+                    continue
+                if player_id == "496373158" and "others" in group_command:
                     continue
                 if group_command[1] == "coin":
                     write_coin(player_id, Player(player_id).coin + number)

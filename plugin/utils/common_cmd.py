@@ -357,6 +357,14 @@ def use_cmd(
     # TODO 使用物品
     match item_name:
         case "童年的倒影":
+            if _check_temp_non(user_id):
+                species_name = get_non_entity(user_id).species.name_cn
+                bot.send(
+                    mode,
+                    user_id if mode == "private" else group_id,
+                    message=f"{id2name.get_name(user_id)}的暂存区中有未命名的NON({species_name})\n请先使用.non name 【NAME】对其命名.",
+                )
+                return
             if len(command_list) < 3 or command_list[2] not in area_data.keys():
                 bot.send(
                     mode,
