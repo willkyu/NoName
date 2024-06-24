@@ -8,8 +8,8 @@ Rename the repository.
 
 # TODO
 
-- [] pp归零后事件
-- [] 新增属性feature
-- [] 丰富各种种类
-- [] pve
+- [ ] pp归零后事件
+- [ ] 新增属性feature
+- [ ] 丰富各种种类
+- [ ] pve
 
