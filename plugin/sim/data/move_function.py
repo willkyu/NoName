@@ -37,20 +37,21 @@ class MoveFunctions:
     def may_pollution_all(
         field: Field, non_tuple: tuple[str, int], chance: float = 0.3, **kwargs
     ):
-        for side_id, side in field.sides.items():
-            for index in len(side.active_nons):
-                non = field.tuple2non((side_id, index))
-                if non.hp > 0:
-                    if "污染" not in non.conditions:
-                        non.add_condition("污染")
-                        field.log.append(f"{non.name}受到了污染!")
-                    else:
-                        non.conditions["污染"].flags["turn"] += 1
-                        field.log.append(f"{non.name}的污染加重了!")
+        non = field.tuple2non(kwargs["org"])
+        all_non_list = field.get_all_non()
+        for non in all_non_list:
+            if random.random() > chance:
+                continue
+            if "污染" not in non.conditions:
+                non.add_condition("污染")
+                field.log.append(f"{non.name}受到了污染!")
+            else:
+                non.conditions["污染"].flags["turn"] += 1
+                field.log.append(f"{non.name}的污染加重了!")
 
     @staticmethod
     def protect(field: Field, non_tuple: tuple[str, int], chance: float = 1, **kwargs):
-        non = field.tuple2non(kwargs["org_tuple"])
+        non = field.tuple2non(kwargs["org"])
         non.battle_status.protect = True
         field.log.append(f"{non.name}准备保护自己.")
 
@@ -58,4 +59,4 @@ class MoveFunctions:
     def pray_for_rain(
         field: Field, non_tuple: tuple[str, int] | str, chance: float = 1, **kwargs
     ):
-        field.update_weather("Rainy", "招式:祈雨", org=kwargs["org_tuple"])
+        field.update_weather("Rainy", "招式:祈雨", org=kwargs["org"])

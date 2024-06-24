@@ -14,57 +14,52 @@ class AbilityFunctions:
 
     @staticmethod
     def hello_world(self: NonEvent, field: Field, **kwargs):
-        side = field.sides[kwargs["org"][0]]
-        for non_index in range(len(side.active_nons)):
-            if non_index != kwargs["org"][1] and side.active_nons[non_index].hp > 0:
-                side.active_nons[non_index].stats_level.ATK += 1
-                target_name = side.active_nons[non_index].name
-                field.log.append(
-                    f"{field.tuple2non(kwargs['org']).name}--[特性:{self.reason}]-->{target_name}[ATK+1]"
-                )
+        org_non_tuple = kwargs["org"]
+        ally_list = field.get_ally_non(org_non_tuple)
+        for non in ally_list:
+            non.stats_level.ATK += 1
+            field.log.append(
+                f"{field.tuple2name(org_non_tuple)}--[特性:{self.reason}]-->{non.name}[ATK+1]"
+            )
 
     @staticmethod
     def absolute_fairness(self: NonEvent, field: Field, **kwargs):
-        for side in field.sides.values():
-            for non_index in range(len(side.active_nons)):
-                if side.active_nons[non_index].hp > 0:
-                    side.active_nons[non_index].stats_level = (
-                        field.generate_empty_stat_level()
-                    )
+        org_non_tuple = kwargs["org"]
+
+        all_non_list = field.get_all_non()
+        for non in all_non_list:
+            non.stats_level = field.generate_empty_stat_level()
 
         field.log.append(
-            f"{field.tuple2non(kwargs['org']).name}--[特性:{self.reason}]-->ALL[能力等级归零]"
+            f"{field.tuple2name(org_non_tuple)}--[特性:{self.reason}]-->ALL[能力等级归零]"
         )
 
     @staticmethod
     def reborn(self: NonEvent, field: Field, **kwargs):
-        for side in field.sides.values():
-            for non_index in range(len(side.active_nons)):
-                if side.active_nons[non_index].hp <= 0:
-                    target = side.active_nons[non_index]
-                    target.hp = target.hp_max // 2
-                    target.stats_level = field.generate_empty_stat_level()
-                    field.log.append(
-                        f"{field.tuple2non(kwargs['org']).name}--[特性:{self.reason}]-->{target.name}[HP:{target.hp}/{target.hp_max}]"
-                    )
+        org_non_tuple = kwargs["org"]
+        died_ally_list = field.get_ally_non(org_non_tuple, alive=False)
+        for target in died_ally_list:
+            field.revive_non(target)
+            field.log.append(
+                f"{field.tuple2name(org_non_tuple)}--[特性:{self.reason}]-->{target.name}[HP:{target.hp}/{target.hp_max}]"
+            )
 
     @staticmethod
     def water_stepping(self: NonEvent, field: Field, **kwargs):
-        org_non = field.tuple2non(kwargs["org"])
-        org_non.stats_level.SPE += 1
-        field.log.append(f"{org_non.name}--[特性:{self.reason}]-->{org_non}[SPE+1]")
+        if field.weather == "Rainy":
+            org_non = field.tuple2non(kwargs["org"])
+            org_non.stats_level.SPE += 1
+            field.log.append(f"{org_non.name}--[特性:{self.reason}]-->{org_non}[SPE+1]")
 
     @staticmethod
     def reluctant(self: NonEvent, field: Field, **kwargs):
-        side = field.sides[kwargs["org"][0]]
-        for non_index in range(len(side.active_nons)):
-            if non_index != kwargs["org"][1] and side.active_nons[non_index].hp > 0:
-                target = side.active_nons[non_index]
-                recover = min(target.hp_max // 8, target.hp_max - target.hp)
-                field.log.append(
-                    f"{field.tuple2non(kwargs['org']).name}--[特性:{self.reason}]-->{target.name}[HP:{target.hp}+{target.hp_max//8}={target.hp+recover}/{target.hp_max}]"
-                )
-                target.hp += recover
+        org_non_tuple = kwargs["org"]
+        ally_list = field.get_ally_non(org_non_tuple)
+        for non in ally_list:
+            before, amount, after = field.recover(non, 0.125)
+            field.log.append(
+                f"{field.tuple2name(org_non_tuple)}--[特性:{self.reason}]-->{non.name}[HP:{before}+{amount}={after}/{non.hp_max}]"
+            )
 
     @staticmethod
     def knee_jerk(self: NonEvent, field: Field, **kwargs):

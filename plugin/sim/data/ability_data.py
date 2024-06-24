@@ -44,7 +44,10 @@ ability_data_base: list[Ability] = [
         add_non_events=NonEventsObj(
             on_weather_changed=[
                 NonEvent(reason="踩踩水花", exe=AbilityFunctions.water_stepping)
-            ]
+            ],
+            on_active_once=[
+                NonEvent(reason="踩踩水花", exe=AbilityFunctions.water_stepping)
+            ],
         ),
     ),
     Ability(

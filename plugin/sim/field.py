@@ -180,9 +180,9 @@ class Field:
         self.wait_switch_dict = {player_id: [] for player_id in self.sides.keys()}
         pass
 
-    def exeCommand(self, side_id: str, command_index: int):
-        # * 注意，exeCommand之前必须确保指令可行，也就是在addCommand阶段就要检查指令可行性
-        # * 执行指令，sideId与playerId是一个东西
+    def exe_command(self, side_id: str, command_index: int):
+        # * 注意，exe_command之前必须确保指令可行，也就是在add_command阶段就要检查指令可行性
+        # * 执行指令，side_id与player_id是一个东西
         # do this command
         command: Command = self.sides[side_id].command_dict[command_index]
 
@@ -286,15 +286,6 @@ class Field:
                 non.move_slots[command.move],
                 target_non,
             )
-            # self.log.append(
-            #     "{}被{}使用{}攻击，受到了{}点伤害，还剩{}HP.".format(
-            #         targetNon.name,
-            #         non.name,
-            #         command.move,
-            #         damage,
-            #         targetNon.hp - damage,
-            #     )
-            # )
             self.log.append(
                 "{}--[{}]-->{}[HP:{}-{}={}/{}]".format(
                     non.name,
@@ -331,6 +322,28 @@ class Field:
         non_entity.hp -= min(damage, non_entity.hp)
         if non_entity.hp <= 0:
             self.fainted_process(non_tuple)
+
+    def recover(self, non: NON, amount: int | float):
+        """恢复给定non的hp
+            amount为回复量，如果为整数就是绝对值，如果为小数就是最大hp百分比
+
+        Args:
+            non (NON): _description_
+            amount (int | float): _description_
+
+        Returns:
+            _type_: 回复前hp，回复的hp，回复后hp；用于log输出
+        """
+        if non.hp <= 0:
+            return
+        if isinstance(amount, float):
+            if amount > 1 or amount < 0:
+                return
+            amount = math.floor(amount * non.hp_max)
+        before, heal_amount = non.hp, amount
+        amount = min(amount, non.hp_max - non.hp)
+        non.hp += amount
+        return before, heal_amount, non.hp
 
     def get_random_active_non_tuple(self, side_id=None):
         """获取一个随机的active的NON，不给sideId就从全局active的NON中选。
@@ -535,8 +548,33 @@ class Field:
             return
         self.weather = weather
         self.log.append("由于[{}]天气变成了{}……".format(reason, self.weather))
-        kwargs["weatherChangedOrg"] = org
-        self.event_trigger_all("onWeatherChanged", **kwargs)
+        kwargs["weather_changed_org"] = org
+        self.event_trigger_all("on_weather_changed", **kwargs)
+
+    def get_ally_non(self, non_tuple: tuple[str, int], alive: bool = True) -> list[NON]:
+        res_list = []
+        for non_index in range(len(self.sides[non_tuple[0]])):
+            non: NON = self.sides[non_tuple[0]].active_nons[non_index]
+            if non_index != non_tuple[1] and (non.hp > 0 if alive else non.hp <= 0):
+                res_list.append(non)
+        return res_list
+
+    def get_all_non(self) -> list[NON]:
+        res_list = []
+        for side in self.sides.values():
+            for non_index in range(len(side.active_nons)):
+                if side.active_nons[non_index].hp > 0:
+                    res_list.append(side.active_nons[non_index])
+        return res_list
+
+    def revive_non(self, non: NON) -> None:
+        if non.hp > 0:
+            return
+        non.hp = non.hp_max // 4
+        non.stats_level = self.generate_empty_stat_level()
+
+    def tuple2name(self, non_tuple: tuple) -> str:
+        return self.tuple2non(non_tuple).name
 
     def tuple2non(self, non_tuple: tuple[str, int], active: bool = True):
         """给定一个non的tuple，返回该non对象。active用于指定他是否active

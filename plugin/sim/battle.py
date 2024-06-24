@@ -190,7 +190,7 @@ class Battle:
         command_list_this_turn = self.field.calculate_command_order()
         for command_tuple in command_list_this_turn:
             # self.log.append("执行command:\n" + str(commandTuple))
-            self.field.exeCommand(*command_tuple)
+            self.field.exe_command(*command_tuple)
 
         # 回合结束处理
         self.field.event_trigger_all("end_of_turn")
@@ -427,6 +427,8 @@ class CommandProcessor:
             self.int2str.clear()
             hint_str = "请选择{}的行动:\n".format(self.current_non)
             for idx, move_slot in enumerate(list(non.move_slots.values())):
+                if move_slot.pp <= 0:
+                    continue
                 self.int2str[idx] = "move" + move_slot.name_cn
                 hint_str += "指令【.non {}】:{}\n".format(idx, move_slot.name_cn)
             if self.can_switch():

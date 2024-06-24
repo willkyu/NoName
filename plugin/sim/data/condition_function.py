@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class ConditionFunctions:
     """异常状态、各种状态效果函数均写在这里"""
 
-    @classmethod
+    @staticmethod
     def burnt_end_of_turn(cls, self: NonEvent, field: Field, **kwargs):
         non = field.tuple2non(kwargs["org"])
         non.conditions["烧伤"].flags["turn"] += 1
@@ -21,7 +21,7 @@ class ConditionFunctions:
         field.make_damage(kwargs["org"], non.hp_max // 10)
         # non.hp -= min(non.hp_max // 10, non.hp)
 
-    @classmethod
+    @staticmethod
     def pollution_end_of_turn(cls, self: NonEvent, field: Field, **kwargs):
         non = field.tuple2non(kwargs["org"])
         non.conditions["污染"].flags["turn"] += 1
